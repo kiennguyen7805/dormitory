@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hoá đơn của tôi — Hệ thống Quản lý KTX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../shared/styles/design-system.css">
+</head>
+<body data-role="student" data-page="bills" data-title="Hoá đơn của tôi">
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Hoá đơn của tôi</div>
+    <div class="page-subtitle">Theo dõi các khoản phải thanh toán theo từng kỳ</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Số hoá đơn</th><th>Kỳ</th><th>Tổng tiền</th><th>Đã thanh toán</th><th>Còn nợ</th><th>Hạn thanh toán</th><th>Trạng thái</th><th></th></tr></thead>
+      <tbody id="billBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal chi tiết hoá đơn -->
+<div class="modal-overlay" id="modalBillDetail">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header"><div class="modal-title">Chi tiết hoá đơn <span id="detailBillNo"></span></div><button class="modal-close" onclick="closeModal('modalBillDetail')">✕</button></div>
+    <div class="modal-body">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Khoản mục</th><th>Số tiền</th></tr></thead>
+          <tbody>
+            <tr><td>Phí ở (Housing fee)</td><td>850.000 đ</td></tr>
+            <tr><td>Tiền điện</td><td>264.000 đ</td></tr>
+            <tr><td>Tiền nước</td><td>96.000 đ</td></tr>
+            <tr><td>Phạt vi phạm</td><td>40.000 đ</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <hr class="divider">
+      <div class="row-between"><span class="fw-medium">Tổng cộng</span><span class="fw-bold text-lg" id="detailTotal"></span></div>
+      <div class="row-between"><span class="text-secondary">Còn nợ</span><span class="fw-semibold" id="detailRemain"></span></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalBillDetail')">Đóng</button></div>
+  </div>
+</div>
+
+<script src="../../shared/scripts/mock-data.js"></script>
+<script src="../../shared/scripts/app.js"></script>
+<script src="../../shared/scripts/layout.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tbody = document.getElementById('billBody');
+    MOCK.bills.filter(b => b.code === 'SV0177').forEach(b => {
+      const remain = b.total - b.paid;
+      tbody.innerHTML += `<tr>
+        <td class="fw-medium">${b.no}</td>
+        <td>${b.period}</td>
+        <td>${fmtMoney(b.total)}</td>
+        <td>${fmtMoney(b.paid)}</td>
+        <td class="fw-semibold">${fmtMoney(remain)}</td>
+        <td class="cell-muted">${fmtDate(b.due)}</td>
+        <td>${badgeHtml(b.status)}</td>
+        <td><button class="btn btn-sm btn-ghost" onclick='openDetail(${JSON.stringify(b)})'>Chi tiết</button></td>
+      </tr>`;
+    });
+  });
+  function openDetail(b) {
+    document.getElementById('detailBillNo').textContent = '#' + b.no;
+    document.getElementById('detailTotal').textContent = fmtMoney(b.total);
+    document.getElementById('detailRemain').textContent = fmtMoney(b.total - b.paid);
+    openModal('modalBillDetail');
+  }
+</script>
+</body>
+</html>

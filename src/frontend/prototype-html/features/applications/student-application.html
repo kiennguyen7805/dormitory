@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đăng ký / Chuyển phòng — Hệ thống Quản lý KTX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../shared/styles/design-system.css">
+</head>
+<body data-role="student" data-page="register" data-title="Đăng ký / Chuyển phòng">
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Đăng ký / Chuyển phòng</div>
+    <div class="page-subtitle">Gửi đăng ký ở mới hoặc gửi nguyện vọng chuyển phòng để cán bộ KTX xem xét</div>
+  </div>
+</div>
+
+<div class="tabs" data-tabgroup="reg">
+  <div class="tab-item active" data-tab="new">Đăng ký ở mới</div>
+  <div class="tab-item" data-tab="transfer">Nguyện vọng chuyển phòng</div>
+</div>
+
+<div class="tab-panel active" data-tabpanel="new" data-tabgroup="reg">
+  <div class="card" style="max-width:620px;">
+    <div class="card-header"><div class="section-title">Gửi đăng ký ở ký túc xá</div></div>
+    <div class="card-body">
+      <div class="form-row"><label>Kỳ học</label><select class="input"><option>HK1 2026-2027</option></select></div>
+      <div class="form-row"><label>Loại phòng mong muốn</label>
+        <select class="input"><option>Phòng 4 người</option><option>Phòng 6 người</option></select>
+      </div>
+      <div class="form-row"><label>Thời gian dự kiến ở</label><input class="input" placeholder="VD: 1 năm học"></div>
+      <div class="form-row"><label>Ghi chú</label><textarea class="input" rows="3" placeholder="VD: Muốn ở cùng bạn cùng lớp nếu có thể"></textarea></div>
+      <button class="btn btn-primary" onclick="showToast('Đã gửi đăng ký ở KTX, trạng thái: chờ duyệt.')">Gửi đăng ký</button>
+    </div>
+  </div>
+</div>
+
+<div class="tab-panel" data-tabpanel="transfer" data-tabgroup="reg">
+  <div class="card" style="max-width:620px;">
+    <div class="card-header"><div class="section-title">Gửi nguyện vọng chuyển phòng</div></div>
+    <div class="card-body">
+      <div class="form-row"><label>Phòng hiện tại</label><input class="input" value="A-305 (Giường A-305-02)" disabled></div>
+      <div class="form-row"><label>Lý do muốn chuyển</label>
+        <select class="input"><option>Muốn ở gần bạn cùng lớp</option><option>Vấn đề sinh hoạt chung phòng</option><option>Lý do sức khoẻ</option><option>Khác</option></select>
+      </div>
+      <div class="form-row"><label>Ghi chú thêm</label><textarea class="input" rows="3" placeholder="Mô tả cụ thể nguyện vọng của bạn..."></textarea></div>
+      <div class="form-hint" style="margin-bottom:14px;">Đây là nguyện vọng gửi cán bộ KTX xem xét, không phải yêu cầu tự động — cán bộ sẽ liên hệ và xử lý trực tiếp.</div>
+      <button class="btn btn-primary" onclick="showToast('Đã gửi nguyện vọng chuyển phòng tới cán bộ KTX.')">Gửi nguyện vọng</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../shared/scripts/mock-data.js"></script>
+<script src="../../shared/scripts/app.js"></script>
+<script src="../../shared/scripts/layout.js"></script>
+</body>
+</html>

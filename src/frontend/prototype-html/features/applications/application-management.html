@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đăng ký ở KTX — Hệ thống Quản lý KTX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../shared/styles/design-system.css">
+</head>
+<body data-role="admin" data-page="applications" data-title="Đăng ký ở KTX">
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Đăng ký ở ký túc xá</div>
+    <div class="page-subtitle">Duyệt hồ sơ đăng ký và phân giường cho sinh viên</div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <input class="input search" placeholder="Tìm theo tên hoặc MSSV...">
+  <select class="input">
+    <option value="">Tất cả trạng thái</option>
+    <option>Submitted</option>
+    <option>Approved</option>
+    <option>Rejected</option>
+  </select>
+  <select class="input"><option>HK1 2026-2027</option></select>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>Mã đăng ký</th><th>Sinh viên</th><th>MSSV</th><th>Kỳ học</th><th>Loại phòng mong muốn</th><th>Ngày gửi</th><th>Trạng thái</th><th>Thao tác</th></tr>
+      </thead>
+      <tbody id="appBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal duyệt / từ chối -->
+<div class="modal-overlay" id="modalReview">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Xét duyệt đăng ký <span id="reviewAppId"></span></div><button class="modal-close" onclick="closeModal('modalReview')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Sinh viên</label><div class="fw-semibold" id="reviewStudent"></div></div>
+      <div class="form-row"><label>Loại phòng mong muốn</label><div id="reviewRoomType"></div></div>
+      <div class="form-row"><label>Lý do từ chối (nếu từ chối)</label><textarea class="input" rows="3" placeholder="VD: Đã hết chỗ loại phòng yêu cầu trong kỳ này"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger-outline" onclick="closeModal('modalReview'); showToast('Đã từ chối đăng ký.', 'error')">Từ chối</button>
+      <button class="btn btn-primary" id="btnApprove">Duyệt →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal phân giường -->
+<div class="modal-overlay" id="modalAssignBed">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Phân giường & tạo hợp đồng</div><button class="modal-close" onclick="closeModal('modalAssignBed')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Sinh viên</label><div class="fw-semibold" id="assignStudent"></div></div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Chọn phòng còn trống</label>
+          <select class="input"><option>A-306 (còn 3 chỗ)</option><option>A-312 (còn 1 chỗ)</option><option>B-104 (còn 2 chỗ)</option></select>
+        </div>
+        <div class="form-row"><label>Chọn giường</label>
+          <select class="input"><option>A-306-01</option><option>A-306-02</option><option>A-306-03</option></select>
+        </div>
+      </div>
+      <div class="form-row"><label>Ngày bắt đầu ở</label><input class="input" type="date" value="2026-09-06"></div>
+      <div class="form-hint">Hệ thống sẽ tự kiểm tra không cho chọn giường đã có người ở trùng thời gian.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalAssignBed')">Huỷ</button>
+      <button class="btn btn-primary" onclick="closeModal('modalAssignBed'); showToast('Đã tạo hợp đồng và phân giường thành công.')">Tạo hợp đồng</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../shared/scripts/mock-data.js"></script>
+<script src="../../shared/scripts/app.js"></script>
+<script src="../../shared/scripts/layout.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tbody = document.getElementById('appBody');
+    MOCK.applications.forEach(a => {
+      let actions = '';
+      if (a.status === 'Submitted') {
+        actions = `<button class="btn btn-sm btn-outline" onclick="reviewApp('${a.id}','${a.student}','${a.roomType}')">Xét duyệt</button>`;
+      } else if (a.status === 'Approved') {
+        actions = `<button class="btn btn-sm btn-primary" onclick="assignBed('${a.student}')">Phân giường</button>`;
+      } else {
+        actions = `<span class="text-secondary text-xs">Đã xử lý</span>`;
+      }
+      tbody.innerHTML += `<tr>
+        <td class="fw-medium">${a.id}</td>
+        <td>${a.student}</td>
+        <td class="cell-muted">${a.code}</td>
+        <td>${a.term}</td>
+        <td>${a.roomType}</td>
+        <td class="cell-muted">${fmtDate(a.date)}</td>
+        <td>${badgeHtml(a.status)}</td>
+        <td class="cell-actions">${actions}</td>
+      </tr>`;
+    });
+  });
+
+  function reviewApp(id, student, roomType) {
+    document.getElementById('reviewAppId').textContent = '#' + id;
+    document.getElementById('reviewStudent').textContent = student;
+    document.getElementById('reviewRoomType').textContent = roomType;
+    document.getElementById('btnApprove').onclick = () => {
+      closeModal('modalReview');
+      showToast('Đã duyệt đăng ký. Bạn có thể phân giường ngay.');
+    };
+    openModal('modalReview');
+  }
+  function assignBed(student) {
+    document.getElementById('assignStudent').textContent = student;
+    openModal('modalAssignBed');
+  }
+</script>
+</body>
+</html>

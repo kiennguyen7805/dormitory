@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trợ lý AI — Hệ thống Quản lý KTX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../shared/styles/design-system.css">
+</head>
+<body data-role="admin" data-page="ai" data-title="Trợ lý AI">
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Trợ lý AI</div>
+    <div class="page-subtitle">AI chỉ soạn nội dung để bạn đọc và tự quyết định gửi — không tự quyết định tiền hay trạng thái</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><div class="section-title">✉️ Soạn tin nhắn nhắc nợ</div></div>
+  <div class="card-body">
+    <div class="form-grid-2">
+      <div class="form-row">
+        <label>Chọn hoá đơn quá hạn</label>
+        <select class="input" id="reminderBillSelect">
+          <option value="0">HD2608-0231 — Trần Minh Khoa — còn nợ 1.250.000đ</option>
+          <option value="1">HD2608-0229 — Vũ Thị Ngọc — còn nợ 680.000đ</option>
+        </select>
+      </div>
+      <div class="form-row" style="display:flex; align-items:flex-end;">
+        <button class="btn btn-primary" id="btnDraftReminder" onclick="draftReminder()" style="height:40px;">✨ Soạn nhắc nợ</button>
+      </div>
+    </div>
+
+    <div class="ai-box" id="reminderBox" style="display:none; margin-top:6px;"></div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:20px;">
+  <div class="card-header"><div class="section-title">Trạng thái nhà cung cấp AI</div></div>
+  <div class="card-body row-between">
+    <div class="text-sm">
+      Kết nối tới nhà cung cấp LLM hiện tại: <span class="fw-semibold">Hoạt động bình thường</span>.
+      Khi lỗi/timeout, các chức năng nghiệp vụ khác (hợp đồng, hoá đơn...) vẫn hoạt động bình thường.
+    </div>
+    <span class="badge badge-success">Online</span>
+  </div>
+</div>
+
+<script src="../../shared/scripts/mock-data.js"></script>
+<script src="../../shared/scripts/app.js"></script>
+<script src="../../shared/scripts/layout.js"></script>
+<script>
+  const REMINDER_DATA = [
+    { name: 'Trần Minh Khoa', bill: 'HD2608-0231', amount: '1.250.000đ', due: '05/09/2026' },
+    { name: 'Vũ Thị Ngọc', bill: 'HD2608-0229', amount: '680.000đ', due: '05/09/2026' },
+  ];
+
+  function draftReminder() {
+    const idx = Number(document.getElementById('reminderBillSelect').value);
+    const d = REMINDER_DATA[idx];
+    simulateAiDraft(document.getElementById('btnDraftReminder'), 'reminderBox', () => `
+      <textarea class="input" rows="6">Chào ${d.name},
+
+Ký túc xá xin thông báo hoá đơn số ${d.bill} của bạn hiện còn nợ ${d.amount}, đã quá hạn thanh toán (hạn: ${d.due}).
+
+Bạn vui lòng sắp xếp thanh toán sớm tại phòng quản lý KTX hoặc qua hình thức chuyển khoản đã đăng ký để tránh ảnh hưởng đến việc gia hạn hợp đồng.
+
+Trân trọng,
+Ban Quản lý Ký túc xá</textarea>
+      <div style="margin-top:10px; display:flex; gap:8px;">
+        <button class="btn btn-sm btn-outline" onclick="draftReminder()">Soạn lại</button>
+        <button class="btn btn-sm btn-primary" onclick="showToast('Đã gửi nhắc nợ tới sinh viên.')">Gửi cho sinh viên</button>
+      </div>`);
+  }
+</script>
+</body>
+</html>

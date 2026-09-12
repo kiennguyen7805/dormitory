@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Hệ thống Quản lý KTX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../shared/styles/design-system.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body data-role="admin" data-page="dashboard" data-title="Dashboard">
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Tổng quan Ký túc xá</div>
+    <div class="page-subtitle">Số liệu cập nhật đến hôm nay — Học kỳ 1, năm học 2026–2027</div>
+  </div>
+  <div class="filter-bar" style="margin:0">
+    <select class="input"><option>Toàn bộ ký túc xá</option><option>Toà A</option><option>Toà B</option></select>
+    <button class="btn btn-outline">Xuất báo cáo</button>
+  </div>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-icon blue">🛏️</div>
+    <div>
+      <div class="kpi-label">Tổng số giường</div>
+      <div class="kpi-value">240</div>
+      <div class="kpi-delta text-secondary">Toà A: 140 · Toà B: 100</div>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-icon teal">✅</div>
+    <div>
+      <div class="kpi-label">Đang có người ở</div>
+      <div class="kpi-value">198</div>
+      <div class="kpi-delta up">▲ 6 so với tuần trước</div>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-icon green">📊</div>
+    <div>
+      <div class="kpi-label">Tỷ lệ lấp đầy</div>
+      <div class="kpi-value">82.5%</div>
+      <div class="kpi-delta text-secondary">Mục tiêu kỳ này: 85%</div>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-icon amber">💰</div>
+    <div>
+      <div class="kpi-label">Tổng công nợ hiện tại</div>
+      <div class="kpi-value">46,5tr đ</div>
+      <div class="kpi-delta down">▼ 3 hoá đơn quá hạn</div>
+    </div>
+  </div>
+</div>
+
+<div class="stack-gap" style="display:grid; grid-template-columns: 1.4fr 1fr; gap:18px;">
+  <div class="card">
+    <div class="card-header">
+      <div class="section-title">Doanh thu theo tháng</div>
+      <div class="text-secondary text-xs">Đã lập hoá đơn (billed) so với đã thu (collected)</div>
+    </div>
+    <div class="card-body">
+      <canvas id="revenueChart" height="230"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="section-title">Lấp đầy theo toà</div>
+    </div>
+    <div class="card-body">
+      <canvas id="occupancyChart" height="230"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:18px;">
+  <div class="card-header">
+    <div class="section-title">Hoá đơn quá hạn cần xử lý</div>
+    <a href="../billing/billing-management.html" class="btn btn-sm btn-ghost">Xem tất cả →</a>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>Số hoá đơn</th><th>Sinh viên</th><th>Kỳ</th><th>Số tiền còn nợ</th><th>Hạn thanh toán</th><th>Trạng thái</th><th></th></tr>
+      </thead>
+      <tbody id="overdueBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="../../shared/scripts/mock-data.js"></script>
+<script src="../../shared/scripts/app.js"></script>
+<script src="../../shared/scripts/layout.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Bảng hoá đơn quá hạn
+    const tbody = document.getElementById('overdueBody');
+    MOCK.bills.filter(b => b.status === 'Overdue' || b.status === 'PartiallyPaid').forEach(b => {
+      const remain = b.total - b.paid;
+      tbody.innerHTML += `<tr>
+        <td class="fw-medium">${b.no}</td>
+        <td>${b.student} <span class="text-secondary">(${b.code})</span></td>
+        <td>${b.period}</td>
+        <td class="fw-semibold">${fmtMoney(remain)}</td>
+        <td>${fmtDate(b.due)}</td>
+        <td>${badgeHtml(b.status)}</td>
+        <td><a href="../billing/billing-management.html" class="btn btn-sm btn-outline">Xử lý</a></td>
+      </tr>`;
+    });
+
+    new Chart(document.getElementById('revenueChart'), {
+      type: 'bar',
+      data: {
+        labels: ['T3', 'T4', 'T5', 'T6', 'T7', 'T8'],
+        datasets: [
+          { label: 'Đã lập hoá đơn', data: [180, 195, 210, 205, 220, 232], backgroundColor: '#DCE7FF', borderRadius: 6 },
+          { label: 'Đã thu', data: [170, 180, 200, 190, 205, 198], backgroundColor: '#2F6FED', borderRadius: 6 },
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: 'Be Vietnam Pro' } } } },
+        scales: { y: { grid: { color: '#E4E7EC' }, ticks: { callback: v => v + 'tr' } }, x: { grid: { display: false } } }
+      }
+    });
+
+    new Chart(document.getElementById('occupancyChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Toà A - đang ở', 'Toà A - trống', 'Toà B - đang ở', 'Toà B - trống'],
+        datasets: [{ data: [118, 22, 80, 20], backgroundColor: ['#2F6FED', '#DCE7FF', '#14B8A6', '#ECFDF9'] }]
+      },
+      options: {
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11, family: 'Be Vietnam Pro' } } } },
+        cutout: '62%'
+      }
+    });
+  });
+</script>
+</body>
+</html>

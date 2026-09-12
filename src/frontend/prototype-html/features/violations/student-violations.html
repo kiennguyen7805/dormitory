@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vi phạm của tôi — Hệ thống Quản lý KTX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../shared/styles/design-system.css">
+</head>
+<body data-role="student" data-page="violations" data-title="Vi phạm của tôi">
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Vi phạm của tôi</div>
+    <div class="page-subtitle">Lịch sử các vi phạm được ghi nhận trong quá trình ở ký túc xá</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Mã VP</th><th>Loại vi phạm</th><th>Mức độ</th><th>Ngày</th><th>Mức phạt</th><th>Trạng thái</th></tr></thead>
+      <tbody id="vBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="../../shared/scripts/mock-data.js"></script>
+<script src="../../shared/scripts/app.js"></script>
+<script src="../../shared/scripts/layout.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tbody = document.getElementById('vBody');
+    const mine = MOCK.violations.filter(v => v.code === 'SV0177');
+    if (mine.length === 0) {
+      tbody.innerHTML = `<tr class="row-empty"><td colspan="6">Bạn chưa có vi phạm nào được ghi nhận 🎉</td></tr>`;
+    }
+    mine.forEach(v => {
+      tbody.innerHTML += `<tr>
+        <td class="fw-medium">${v.id}</td>
+        <td>${v.type}</td>
+        <td>${v.severity}</td>
+        <td class="cell-muted">${fmtDate(v.date)}</td>
+        <td>${v.fine ? fmtMoney(v.fine) : '—'}</td>
+        <td>${badgeHtml(v.status)}</td>
+      </tr>`;
+    });
+  });
+</script>
+</body>
+</html>

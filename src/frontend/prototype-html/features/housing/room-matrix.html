@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tòa / Phòng / Giường — Hệ thống Quản lý KTX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../shared/styles/design-system.css">
+</head>
+<body data-role="admin" data-page="room-matrix" data-title="Tòa / Phòng / Giường">
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Sơ đồ Tòa / Phòng / Giường</div>
+    <div class="page-subtitle">Trạng thái giường được suy ra tự động từ phân giường đang hiệu lực</div>
+  </div>
+  <div class="filter-bar" style="margin:0">
+    <button class="btn btn-outline" onclick="openModal('modalBuilding')">+ Thêm tòa</button>
+    <button class="btn btn-primary" onclick="openModal('modalRoom')">+ Thêm phòng</button>
+  </div>
+</div>
+
+<div class="card card-pad" style="margin-bottom:20px;">
+  <div class="legend">
+    <div class="legend-item"><span class="legend-swatch" style="background:var(--success-bg); border:1px solid #BBF0CF"></span> Giường còn trống</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:var(--primary-50); border:1px solid var(--primary-100)"></span> Đang có người ở</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:var(--neutral-bg); border:1px solid var(--border)"></span> Đang bảo trì</div>
+  </div>
+</div>
+
+<div class="building-block">
+  <h3 class="section-title">🏢 Toà A · 5 tầng · 140 giường</h3>
+  <div class="room-grid" id="buildingA"></div>
+</div>
+
+<div class="building-block">
+  <h3 class="section-title">🏢 Toà B · 4 tầng · 100 giường</h3>
+  <div class="room-grid" id="buildingB"></div>
+</div>
+
+<!-- Modal: chi tiết giường -->
+<div class="modal-overlay" id="modalBedDetail">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="bedDetailTitle">Chi tiết giường</div><button class="modal-close" onclick="closeModal('modalBedDetail')">✕</button></div>
+    <div class="modal-body" id="bedDetailBody"></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalBedDetail')">Đóng</button></div>
+  </div>
+</div>
+
+<!-- Modal: thêm tòa -->
+<div class="modal-overlay" id="modalBuilding">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Thêm tòa nhà</div><button class="modal-close" onclick="closeModal('modalBuilding')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Mã tòa</label><input class="input" placeholder="VD: C"></div>
+      <div class="form-row"><label>Tên tòa</label><input class="input" placeholder="VD: Toà C"></div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Số tầng</label><input class="input" type="number" placeholder="5"></div>
+        <div class="form-row"><label>Trạng thái</label><select class="input"><option>Active</option><option>Inactive</option></select></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalBuilding')">Huỷ</button>
+      <button class="btn btn-primary" onclick="closeModal('modalBuilding'); showToast('Đã thêm tòa nhà mới.')">Lưu tòa nhà</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: thêm phòng -->
+<div class="modal-overlay" id="modalRoom">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Thêm phòng</div><button class="modal-close" onclick="closeModal('modalRoom')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid-2">
+        <div class="form-row"><label>Thuộc tòa</label><select class="input"><option>Toà A</option><option>Toà B</option></select></div>
+        <div class="form-row"><label>Mã phòng</label><input class="input" placeholder="VD: 306"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Loại phòng</label><select class="input"><option>Phòng 4 người — 850.000đ</option><option>Phòng 6 người — 650.000đ</option></select></div>
+        <div class="form-row"><label>Trạng thái</label><select class="input"><option>Available</option><option>Maintenance</option></select></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalRoom')">Huỷ</button>
+      <button class="btn btn-primary" onclick="closeModal('modalRoom'); showToast('Đã thêm phòng mới.')">Lưu phòng</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../shared/scripts/mock-data.js"></script>
+<script src="../../shared/scripts/app.js"></script>
+<script src="../../shared/scripts/layout.js"></script>
+<script>
+  // Sinh dữ liệu phòng/giường minh hoạ cho mỗi toà
+  function genRooms(prefix, floors, roomsPerFloor, occupantsPool) {
+    const rooms = [];
+    let occIdx = 0;
+    for (let f = 1; f <= floors; f++) {
+      for (let r = 1; r <= roomsPerFloor; r++) {
+        const roomCode = `${prefix}-${f}0${r}`;
+        const beds = [];
+        for (let b = 1; b <= 4; b++) {
+          let status = 'available';
+          const roll = (f + r + b) % 5;
+          if (roll === 0) status = 'maintenance';
+          else if (roll !== 4) status = 'occupied';
+          beds.push({ code: `${roomCode}-0${b}`, status, occupant: status === 'occupied' ? occupantsPool[occIdx++ % occupantsPool.length] : null });
+        }
+        rooms.push({ code: roomCode, floor: f, beds });
+      }
+    }
+    return rooms;
+  }
+
+  const occupants = ['Trần Minh Khoa', 'Vũ Thị Ngọc', 'Nguyễn Văn Bình', 'Phạm Thị Lan', 'Đỗ Thu Hà', 'Lê Quang Huy', 'Hoàng Anh Tuấn', 'Bùi Kim Chi'];
+
+  function renderBuilding(containerId, prefix, floors) {
+    const container = document.getElementById(containerId);
+    const rooms = genRooms(prefix, floors, 3, occupants);
+    rooms.forEach(room => {
+      const occCount = room.beds.filter(b => b.status === 'occupied').length;
+      const card = document.createElement('div');
+      card.className = 'room-card';
+      card.innerHTML = `
+        <div class="room-card-head">
+          <div class="fw-semibold">Phòng ${room.code}</div>
+          <span class="text-xs text-secondary">${occCount}/4 đang ở</span>
+        </div>
+        <div class="bed-grid">
+          ${room.beds.map(b => `<div class="bed-cell ${b.status}" data-bed="${b.code}" data-occupant="${b.occupant || ''}" data-status="${b.status}">${b.code.split('-').pop()}</div>`).join('')}
+        </div>`;
+      container.appendChild(card);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderBuilding('buildingA', 'A', 5);
+    renderBuilding('buildingB', 'B', 4);
+
+    document.querySelectorAll('.bed-cell').forEach(cell => {
+      cell.addEventListener('click', () => {
+        const status = cell.dataset.status;
+        const bed = cell.dataset.bed;
+        const occupant = cell.dataset.occupant;
+        document.getElementById('bedDetailTitle').textContent = `Giường ${bed}`;
+        let body = '';
+        if (status === 'occupied') {
+          body = `
+            <div class="form-row"><label>Sinh viên đang ở</label><div class="fw-semibold">${occupant}</div></div>
+            <div class="form-row"><label>Trạng thái</label>${badgeHtml('Occupied')}</div>
+            <div class="form-row"><label>Ngày vào ở</label><div>16/08/2026</div></div>`;
+        } else if (status === 'maintenance') {
+          body = `<div class="form-row"><label>Trạng thái</label>${badgeHtml('Maintenance')}</div>
+            <div class="form-row"><label>Ghi chú</label><div class="text-secondary">Đang sửa hệ thống điện, dự kiến xong 10/09/2026.</div></div>`;
+        } else {
+          body = `<div class="form-row"><label>Trạng thái</label>${badgeHtml('Available')}</div>
+            <div class="form-row"><label>Ghi chú</label><div class="text-secondary">Giường còn trống, có thể phân cho sinh viên đã duyệt đăng ký.</div></div>`;
+        }
+        document.getElementById('bedDetailBody').innerHTML = body;
+        openModal('modalBedDetail');
+      });
+    });
+  });
+</script>
+</body>
+</html>

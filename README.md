@@ -1,70 +1,92 @@
-# Dormitory UI — Hệ thống Quản lý Ký túc xá
+# Hệ thống Quản lý Ký túc xá (MVP)
 
-Bản prototype frontend cho MVP quản lý ký túc xá. Giao diện hiện dùng HTML, CSS và JavaScript thuần với dữ liệu mẫu; cấu trúc mã được chia theo **feature nghiệp vụ** để bám sát modular monolith trong tài liệu và thuận tiện chuyển dần sang React + TypeScript.
+Ứng dụng được tổ chức theo Modular Monolith và feature folders trong `docs/02-cau-truc-du-an.md`.
+Theo yêu cầu triển khai bằng Python, bốn lớp trong thiết kế được giữ nguyên về trách nhiệm nhưng dùng
+FastAPI + SQLAlchemy + Alembic thay cho ASP.NET Core + EF Core.
+
+## Công nghệ
+
+- Backend: Python 3.12, FastAPI, SQLAlchemy 2, Alembic, PostgreSQL 16.
+- Xác thực: JWT, Argon2, ba vai trò cố định `Admin`, `Staff`, `Student`.
+- Frontend: React 19, TypeScript, Vite, Ant Design.
+- Test: pytest + FastAPI TestClient; frontend được kiểm tra bằng TypeScript/Vite build.
+
+## Cấu trúc
+
+```text
+src/
+├── backend/
+│   ├── Dormitory.Domain/dormitory_domain/                 # entity, enum, business rules
+│   ├── Dormitory.Application/dormitory_application/       # schema, interface, use case
+│   ├── Dormitory.Infrastructure/dormitory_infrastructure/ # SQLAlchemy, migration, auth, seed
+│   ├── Dormitory.Api/dormitory_api/                       # FastAPI router, middleware, authorization
+│   ├── alembic.ini
+│   └── pyproject.toml
+└── frontend/
+    ├── src/app, api, auth, components, layouts, features, routes
+    └── prototype-html/                                    # prototype gốc để tham chiếu
+
+tests/
+├── Dormitory.Domain.Tests/
+└── Dormitory.Api.IntegrationTests/
+```
+
+Các feature folders dành cho tuần sau vẫn được giữ đúng thiết kế: Contracts, Utilities, Billing,
+Violations, Reports và AI.
 
 ## Chạy dự án
 
-Không cần cài dependency hoặc build. Mở `index.html` bằng trình duyệt, chọn vai trò **Admin / Cán bộ / Sinh viên**, sau đó bấm **Đăng nhập**.
+### 1. Backend
 
-Ứng dụng cần Internet để tải font Be Vietnam Pro và Chart.js từ CDN. Khi offline, các trang vẫn hiển thị bằng font hệ thống nhưng biểu đồ không được tải.
-
-## Cấu trúc thư mục
-
-```text
-dormitory-ui/
-├── docs/                              # Phân tích MVP và kiến trúc mục tiêu
-│   ├── 01-phan-tich-bai-toan-mvp.md
-│   └── 02-cau-truc-du-an.md
-├── src/
-│   ├── features/                      # Trang và logic được nhóm theo nghiệp vụ
-│   │   ├── auth/                      # Đăng nhập và chọn vai trò demo
-│   │   ├── dashboard/                 # Dashboard Admin và Student
-│   │   ├── housing/                   # Tòa, phòng, giường, room matrix
-│   │   ├── applications/              # Đăng ký, duyệt, nguyện vọng chuyển phòng
-│   │   ├── contracts/                 # Hợp đồng, phân giường, chuyển phòng
-│   │   ├── utilities/                 # Chỉ số và biểu giá điện nước
-│   │   ├── billing/                   # Hóa đơn, thanh toán, công nợ
-│   │   ├── violations/                # Ghi nhận và theo dõi vi phạm
-│   │   └── ai/                        # Nhắc nợ và nội dung do AI soạn
-│   └── shared/                        # Tài nguyên dùng chung giữa các feature
-│       ├── scripts/
-│       │   ├── app.js                 # Modal, tab, toast, format, badge
-│       │   ├── layout.js              # Sidebar, topbar và điều hướng theo role
-│       │   └── mock-data.js           # Dữ liệu demo tập trung
-│       └── styles/
-│           └── design-system.css      # Token và component giao diện dùng chung
-├── index.html                         # Entry point / màn hình đăng nhập
-└── README.md
+```bash
+cp .env.example .env
+python -m venv .venv
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+# Linux/macOS: source .venv/bin/activate
+pip install -e "src/backend[dev]"
+docker compose up -d postgres
+cd src/backend
+alembic upgrade head
+python -m dormitory_infrastructure.identity.seed_cli
+uvicorn dormitory_api.main:app --reload
 ```
 
-## Ánh xạ màn hình theo module
+API chạy tại `http://localhost:8000`; Swagger UI tại `http://localhost:8000/docs`.
 
-| Module | Màn hình quản trị/cán bộ | Màn hình sinh viên | Chức năng MVP |
-|---|---|---|---|
-| Dashboard | `dashboard/admin-dashboard.html` | `dashboard/student-dashboard.html` | F23–F25, tổng quan chỗ ở |
-| Housing | `housing/room-matrix.html` | — | F01–F05 |
-| Applications | `applications/application-management.html` | `applications/student-application.html` | F06–F08, nguyện vọng chuyển phòng |
-| Contracts | `contracts/contract-management.html` | Hiển thị trong dashboard | F09–F11 |
-| Utilities | `utilities/utility-management.html` | — | F12–F15 |
-| Billing | `billing/billing-management.html` | `billing/student-bills.html` | F16–F19 |
-| Violations | `violations/violation-management.html` | `violations/student-violations.html` | F20–F22, F27 |
-| AI | `ai/ai-assistant.html` | — | F26 |
+### 2. Frontend
 
-Tất cả đường dẫn trong bảng bắt đầu từ `src/features/`.
+```bash
+cd src/frontend
+npm install
+npm run dev
+```
 
-## Nguyên tắc tổ chức
+Frontend chạy tại `http://localhost:5173`.
 
-- `features/` sở hữu màn hình và logic riêng của từng nghiệp vụ; không đặt mã dùng chung vào một feature tùy ý.
-- `shared/` chỉ chứa thành phần thực sự được nhiều feature sử dụng như layout, design system, định dạng và dữ liệu demo.
-- Tên trạng thái trong JavaScript dùng tiếng Anh (`Approved`, `PartiallyPaid`); nhãn tiếng Việt được ánh xạ ở tầng giao diện.
-- Mỗi feature tương ứng trực tiếp với module backend dự kiến trong `Dormitory.Application`, giúp thay mock data bằng API theo từng module mà không phải sửa toàn bộ dự án.
-- Khi chuyển sang React/Vite, giữ nguyên ranh giới feature này và thay từng trang HTML bằng component/route trong chính thư mục feature tương ứng.
+## Tài khoản demo tuần 1
 
-## Tài liệu nền
+| Vai trò | Email | Mật khẩu |
+|---|---|---|
+| Admin | `admin@dormitory.local` | `Admin@123` |
+| Staff | `staff@dormitory.local` | `Staff@123` |
+| Student | `student@dormitory.local` | `Student@123` |
 
-- [Phân tích bài toán MVP](docs/01-phan-tich-bai-toan-mvp.md)
-- [Kiến trúc và cấu trúc dự án mục tiêu](docs/02-cau-truc-du-an.md)
+Chỉ dùng các mật khẩu này cho môi trường phát triển.
 
-## Phạm vi hiện tại
+## Phạm vi hoàn thành tuần 1
 
-Đây là prototype giao diện, chưa kết nối API thật. Các nút nghiệp vụ đang mô phỏng bằng toast và dữ liệu trong `src/shared/scripts/mock-data.js`. Backend ASP.NET Core, PostgreSQL, xác thực thật, kiểm tra quyền sở hữu dữ liệu và các business rule tài chính vẫn cần được triển khai theo tài liệu trong `docs/`.
+- Docker Compose cho PostgreSQL và migration đầu tiên.
+- Seed ba role và một tài khoản demo cho mỗi role.
+- API đăng nhập, đăng xuất, xem người dùng hiện tại; JWT + role guard.
+- F01–F04: CRUD tòa nhà, loại phòng, phòng, giường.
+- F05: room matrix; trạng thái giường là dữ liệu suy ra, không nhận từ request.
+- Frontend login, layout Admin/Staff và Student, routing theo role.
+- Frontend quản lý cơ sở vật chất và xem room matrix.
+- Test tích hợp luồng demo cuối tuần 1.
+
+## Kiểm tra
+
+```bash
+cd src/backend && pytest
+cd src/frontend && npm run build
+```

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kỷ luật — Hệ thống Quản lý KTX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../shared/styles/design-system.css">
+</head>
+<body data-role="admin" data-page="violations" data-title="Kỷ luật">
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Quản lý vi phạm</div>
+    <div class="page-subtitle">Ghi nhận, xác nhận/từ chối, phạt tiền chỉ áp dụng khi đã xác nhận</div>
+  </div>
+  <button class="btn btn-primary" onclick="openModal('modalNewViolation')">+ Ghi nhận vi phạm</button>
+</div>
+
+<div class="filter-bar">
+  <input class="input search" placeholder="Tìm theo tên hoặc MSSV...">
+  <select class="input"><option value="">Tất cả mức độ</option><option>Nhẹ</option><option>Trung bình</option><option>Nặng</option></select>
+  <select class="input"><option value="">Tất cả trạng thái</option><option>Recorded</option><option>Confirmed</option><option>Rejected</option></select>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>Mã VP</th><th>Sinh viên</th><th>Loại vi phạm</th><th>Mức độ</th><th>Ngày</th><th>Mức phạt</th><th>Trạng thái</th><th>Thao tác</th></tr>
+      </thead>
+      <tbody id="vBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card" style="margin-top:20px;">
+  <div class="card-header">
+    <div class="section-title">Tóm tắt lịch sử vi phạm bằng AI</div>
+  </div>
+  <div class="card-body">
+    <div class="form-grid-2" style="margin-bottom:14px;">
+      <div class="form-row" style="margin-bottom:0;">
+        <label>Chọn sinh viên</label>
+        <select class="input" id="aiStudentSelect">
+          <option>Trần Minh Khoa (SV0177)</option>
+          <option>Nguyễn Văn Bình (SV0198)</option>
+          <option>Lê Quang Huy (SV0088)</option>
+        </select>
+      </div>
+      <div class="form-row" style="margin-bottom:0; display:flex; align-items:flex-end;">
+        <button class="btn btn-primary" id="btnAiSummarize" onclick="runAiSummary()" style="height:40px;">✨ Tóm tắt bằng AI</button>
+      </div>
+    </div>
+    <div class="ai-box" id="aiSummaryBox" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- Modal ghi nhận vi phạm -->
+<div class="modal-overlay" id="modalNewViolation">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Ghi nhận vi phạm</div><button class="modal-close" onclick="closeModal('modalNewViolation')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Sinh viên</label><input class="input" placeholder="Tìm theo tên hoặc MSSV..."></div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Loại vi phạm</label>
+          <select class="input"><option>Gây ồn sau 22h</option><option>Nấu ăn sai quy định</option><option>Vi phạm giờ giới nghiêm</option><option>Khác</option></select>
+        </div>
+        <div class="form-row"><label>Mức độ</label><select class="input"><option>Nhẹ</option><option>Trung bình</option><option>Nặng</option></select></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Thời gian</label><input class="input" type="datetime-local"></div>
+        <div class="form-row"><label>Địa điểm</label><input class="input" placeholder="VD: Phòng A-305"></div>
+      </div>
+      <div class="form-row"><label>Mô tả</label><textarea class="input" rows="3" placeholder="Mô tả chi tiết sự việc..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalNewViolation')">Huỷ</button>
+      <button class="btn btn-primary" onclick="closeModal('modalNewViolation'); showToast('Đã ghi nhận vi phạm, trạng thái: chờ xác nhận.')">Lưu (trạng thái: Recorded)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal xác nhận vi phạm -->
+<div class="modal-overlay" id="modalConfirmV">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Xác nhận vi phạm</div><button class="modal-close" onclick="closeModal('modalConfirmV')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Vi phạm</label><div class="fw-semibold" id="confirmVType"></div></div>
+      <div class="form-row"><label>Mức phạt (nếu có)</label><input class="input" id="confirmFine" type="number" placeholder="VD: 100000"></div>
+      <div class="form-hint">Chỉ khi xác nhận và có mức phạt, hệ thống mới tạo khoản phạt vào hoá đơn kỳ sau.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger-outline" onclick="closeModal('modalConfirmV'); showToast('Đã từ chối vi phạm.', 'error')">Từ chối</button>
+      <button class="btn btn-primary" onclick="closeModal('modalConfirmV'); showToast('Đã xác nhận vi phạm. Khoản phạt sẽ lên hoá đơn kỳ sau.')">Xác nhận</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../shared/scripts/mock-data.js"></script>
+<script src="../../shared/scripts/app.js"></script>
+<script src="../../shared/scripts/layout.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tbody = document.getElementById('vBody');
+    MOCK.violations.forEach(v => {
+      const actions = v.status === 'Recorded'
+        ? `<button class="btn btn-sm btn-outline" onclick="openConfirm('${v.type}')">Xét duyệt</button>`
+        : `<span class="text-secondary text-xs">Đã xử lý</span>`;
+      tbody.innerHTML += `<tr>
+        <td class="fw-medium">${v.id}</td>
+        <td>${v.student} <span class="text-secondary">(${v.code})</span></td>
+        <td>${v.type}</td>
+        <td>${v.severity}</td>
+        <td class="cell-muted">${fmtDate(v.date)}</td>
+        <td>${v.fine ? fmtMoney(v.fine) : '—'}</td>
+        <td>${badgeHtml(v.status)}</td>
+        <td class="cell-actions">${actions}</td>
+      </tr>`;
+    });
+  });
+
+  function openConfirm(type) {
+    document.getElementById('confirmVType').textContent = type;
+    openModal('modalConfirmV');
+  }
+
+  function runAiSummary() {
+    const student = document.getElementById('aiStudentSelect').value;
+    simulateAiDraft(document.getElementById('btnAiSummarize'), 'aiSummaryBox', () => `
+      <p class="text-sm">${student.split(' (')[0]} có <strong>2 vi phạm</strong> được ghi nhận trong học kỳ này: một lỗi <em>nấu ăn sai quy định</em> (mức trung bình, đã xác nhận, phạt 100.000đ) và một lỗi <em>gây ồn sau 22h</em> (mức nhẹ, đang chờ xác nhận). Chưa có vi phạm mức nặng. Đề xuất: nhắc nhở bằng văn bản nếu tái phạm lần nữa trong cùng học kỳ.</p>
+      <div style="margin-top:10px; display:flex; gap:8px;">
+        <button class="btn btn-sm btn-outline" onclick="runAiSummary()">Soạn lại</button>
+      </div>`);
+  }
+</script>
+</body>
+</html>

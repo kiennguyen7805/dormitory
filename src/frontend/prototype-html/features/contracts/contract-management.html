@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hợp đồng — Hệ thống Quản lý KTX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../shared/styles/design-system.css">
+</head>
+<body data-role="admin" data-page="contracts" data-title="Hợp đồng">
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Hợp đồng ở ký túc xá</div>
+    <div class="page-subtitle">Theo dõi hợp đồng, lịch sử phân giường, chuyển phòng và chấm dứt hợp đồng</div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <input class="input search" placeholder="Tìm theo tên, MSSV hoặc số hợp đồng...">
+  <select class="input"><option value="">Tất cả trạng thái</option><option>Active</option><option>Terminated</option></select>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>Số hợp đồng</th><th>Sinh viên</th><th>Phòng / Giường</th><th>Bắt đầu</th><th>Kết thúc</th><th>Giá / tháng</th><th>Trạng thái</th><th>Thao tác</th></tr>
+      </thead>
+      <tbody id="contractBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal: lịch sử phân giường -->
+<div class="modal-overlay" id="modalHistory">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header"><div class="modal-title">Lịch sử phân giường — <span id="histContractNo"></span></div><button class="modal-close" onclick="closeModal('modalHistory')">✕</button></div>
+    <div class="modal-body">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Giường</th><th>Từ ngày</th><th>Đến ngày</th><th>Trạng thái</th></tr></thead>
+          <tbody id="histBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalHistory')">Đóng</button></div>
+  </div>
+</div>
+
+<!-- Modal: chuyển phòng -->
+<div class="modal-overlay" id="modalTransfer">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Chuyển phòng</div><button class="modal-close" onclick="closeModal('modalTransfer')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Sinh viên</label><div class="fw-semibold" id="transferStudent"></div></div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Giường mới còn trống</label>
+          <select class="input"><option>A-306-01</option><option>B-104-02</option></select>
+        </div>
+        <div class="form-row"><label>Ngày chuyển</label><input class="input" type="date" value="2026-09-10"></div>
+      </div>
+      <div class="form-row"><label>Lý do (nếu có điều chỉnh giá)</label><textarea class="input" rows="2" placeholder="VD: Chuyển sang phòng 6 người, điều chỉnh giá còn 650.000đ/tháng"></textarea></div>
+      <div class="form-hint">Hệ thống thực hiện trong 1 giao dịch: kết thúc giường cũ, tạo giường mới, giữ nguyên lịch sử để tra soát.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalTransfer')">Huỷ</button>
+      <button class="btn btn-primary" onclick="closeModal('modalTransfer'); showToast('Đã chuyển phòng thành công, lịch sử được lưu lại.')">Xác nhận chuyển phòng</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: chấm dứt hợp đồng -->
+<div class="modal-overlay" id="modalTerminate">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Chấm dứt hợp đồng</div><button class="modal-close" onclick="closeModal('modalTerminate')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Hợp đồng</label><div class="fw-semibold" id="terminateContract"></div></div>
+      <div class="form-row"><label>Lý do chấm dứt</label>
+        <select class="input"><option>Hết hạn hợp đồng</option><option>Sinh viên xin nghỉ</option><option>Vi phạm nghiêm trọng</option></select>
+      </div>
+      <div class="form-row"><label>Ngày hiệu lực</label><input class="input" type="date" value="2026-09-06"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalTerminate')">Huỷ</button>
+      <button class="btn btn-danger" onclick="closeModal('modalTerminate'); showToast('Đã chấm dứt hợp đồng. Giường đã chuyển về trạng thái trống.')">Xác nhận chấm dứt</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../shared/scripts/mock-data.js"></script>
+<script src="../../shared/scripts/app.js"></script>
+<script src="../../shared/scripts/layout.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tbody = document.getElementById('contractBody');
+    MOCK.contracts.forEach(c => {
+      const actions = c.status === 'Active'
+        ? `<button class="btn btn-sm btn-ghost" onclick="showHistory('${c.no}','${c.bed}')">Lịch sử</button>
+           <button class="btn btn-sm btn-outline" onclick="openTransfer('${c.student}')">Chuyển phòng</button>
+           <button class="btn btn-sm btn-danger-outline" onclick="openTerminate('${c.no}')">Chấm dứt</button>`
+        : `<button class="btn btn-sm btn-ghost" onclick="showHistory('${c.no}','${c.bed}')">Lịch sử</button>`;
+      tbody.innerHTML += `<tr>
+        <td class="fw-medium">${c.no}</td>
+        <td>${c.student} <span class="text-secondary">(${c.code})</span></td>
+        <td>${c.room} / ${c.bed}</td>
+        <td class="cell-muted">${fmtDate(c.start)}</td>
+        <td class="cell-muted">${fmtDate(c.end)}</td>
+        <td>${fmtMoney(c.rate)}</td>
+        <td>${badgeHtml(c.status)}</td>
+        <td class="cell-actions">${actions}</td>
+      </tr>`;
+    });
+  });
+
+  function showHistory(contractNo, bed) {
+    document.getElementById('histContractNo').textContent = contractNo;
+    document.getElementById('histBody').innerHTML = `
+      <tr><td>${bed}</td><td>16/08/2026</td><td class="text-secondary">— (đang ở)</td><td>${badgeHtml('Active')}</td></tr>
+      <tr><td>A-201-04</td><td>01/03/2026</td><td>15/08/2026</td><td>${badgeHtml('Terminated')}</td></tr>`;
+    openModal('modalHistory');
+  }
+  function openTransfer(student) {
+    document.getElementById('transferStudent').textContent = student;
+    openModal('modalTransfer');
+  }
+  function openTerminate(no) {
+    document.getElementById('terminateContract').textContent = no;
+    openModal('modalTerminate');
+  }
+</script>
+</body>
+</html>

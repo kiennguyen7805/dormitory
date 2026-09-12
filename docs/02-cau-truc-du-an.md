@@ -8,16 +8,16 @@
 
 | Thành phần | Lựa chọn | Lý do ngắn gọn |
 |---|---|---|
-| Backend | ASP.NET Core Web API (.NET 10 LTS) | LTS, DI/auth/logging có sẵn, hợp với EF Core |
+| Backend | Python 3.12 + FastAPI | Type hints, OpenAPI tự động, phù hợp triển khai API nhanh |
 | Database | PostgreSQL | Transaction mạnh, constraint tốt, JSONB cho snapshot tính tiền |
-| ORM | Entity Framework Core + Npgsql | Không cần Dapper/MediatR/AutoMapper ở MVP |
-| Auth | ASP.NET Core Identity | Có sẵn hashing, role, tránh tự viết bảo mật |
+| ORM | SQLAlchemy 2 + Alembic + psycopg | ORM, migration và PostgreSQL driver theo hệ sinh thái Python |
+| Auth | JWT + pwdlib (Argon2) | Hash mật khẩu an toàn, phân quyền 3 role cố định |
 | Frontend | React + TypeScript + Vite | Hệ sinh thái mạnh, tách rõ FE/BE, dễ demo |
 | UI Component | Ant Design (1 thư viện duy nhất) | Đủ Form/Table/Modal/DatePicker cho CRUD + dashboard |
 | Chart | Recharts (hoặc ECharts) | Nhẹ, đủ cho biểu đồ lấp đầy/doanh thu |
-| Excel | ClosedXML | Đọc/ghi `.xlsx` cho template chỉ số điện nước |
+| Excel | openpyxl | Đọc/ghi `.xlsx` cho template chỉ số điện nước |
 | AI | `ILlmClient` → OpenAI API (hoặc provider tương đương) | Interface trừu tượng, dễ đổi provider sau này |
-| Test | xUnit + `Microsoft.AspNetCore.Mvc.Testing` | Đủ cho unit test tính tiền + integration test luồng chính |
+| Test | pytest + FastAPI TestClient | Unit test business rule + integration test luồng chính |
 | Hạ tầng dev | Docker Compose (PostgreSQL) | Chạy local nhanh, đồng nhất giữa các máy trong nhóm |
 
 **Không thêm ở MVP** (để không mất thời gian): MediatR, AutoMapper, Generic Repository/UnitOfWork riêng, Redis, message broker, microservices, vector database, Kubernetes, Serilog nâng cao, Testcontainers.
@@ -28,14 +28,14 @@
 
 ```mermaid
 flowchart TB
-    Browser[React + TypeScript + AntD] -->|HTTPS/JSON| API[ASP.NET Core Web API]
+    Browser[React + TypeScript + AntD] -->|HTTPS/JSON| API[Python + FastAPI]
     API --> APP[Application Layer / Use Cases]
     APP --> DOMAIN[Domain Model + Business Rules]
     APP --> INFRA[Infrastructure]
     INFRA --> PG[(PostgreSQL)]
-    INFRA --> XLSX[ClosedXML]
+    INFRA --> XLSX[openpyxl]
     INFRA --> LLM[LLM Provider API]
-    API --> AUTH[ASP.NET Core Identity]
+    API --> AUTH[JWT + Argon2 + role guard]
 ```
 
 Mô hình: **Modular Monolith** — một backend deploy duy nhất, một database, nhưng code chia module nghiệp vụ rõ ràng (Housing, Contracts, Utilities, Billing, Violations, Reports, AI). Đủ chuyên nghiệp, không tốn công triển khai microservices không cần thiết cho một đồ án 5 tuần.
@@ -44,7 +44,7 @@ Hướng phụ thuộc: `Api → Application → Domain`, và `Infrastructure` i
 
 ---
 
-## 3. Cấu trúc thư mục Backend
+## 3. Cấu trúc dự án
 
 ```text
 dormitory-management/
@@ -52,54 +52,45 @@ dormitory-management/
 ├── .gitignore
 ├── .env.example
 ├── docker-compose.yml
-├── DormitoryManagement.sln
+├── Master_Plan_MVP_8Tuan.xlsx
 │
 ├── src/
 │   ├── backend/
-│   │   ├── Dormitory.Domain/
-│   │   │   ├── Housing/          # Building, Room, Bed, RoomType
-│   │   │   ├── Contracts/        # Application, Contract, BedAssignment
-│   │   │   ├── Utilities/        # Utility, Meter, MeterReading, Tariff, TariffTier
-│   │   │   ├── Billing/          # Bill, BillItem, Payment, Receipt
-│   │   │   ├── Violations/       # ViolationType, Violation
-│   │   │   └── Common/           # base entity, enums dùng chung
+│   │   ├── pyproject.toml
+│   │   ├── alembic.ini
+│   │   ├── Dormitory.Domain/dormitory_domain/
+│   │   │   ├── housing/entities.py       # Building, Room, Bed, RoomType
+│   │   │   ├── contracts/                # Application, Contract, BedAssignment
+│   │   │   ├── utilities/                # Utility, Meter, MeterReading, Tariff, TariffTier
+│   │   │   ├── billing/                  # Bill, BillItem, Payment, Receipt
+│   │   │   ├── violations/               # ViolationType, Violation
+│   │   │   └── common/enums.py           # enum dùng chung
 │   │   │
-│   │   ├── Dormitory.Application/
-│   │   │   ├── Identity/
-│   │   │   ├── Housing/
-│   │   │   │   ├── Buildings/  Rooms/  Beds/
-│   │   │   ├── Contracts/
-│   │   │   │   ├── Applications/  ApproveApplication/
-│   │   │   │   ├── AssignBed/     TransferRoom/
-│   │   │   ├── Utilities/
-│   │   │   │   ├── Readings/  ExcelImport/  Tariffs/
-│   │   │   ├── Billing/
-│   │   │   │   ├── GenerateBill/  RecordPayment/  Receipts/
-│   │   │   │   ├── BillingCalculator.cs   # nơi test kỹ nhất (tính bậc giá)
-│   │   │   ├── Violations/
-│   │   │   ├── Reports/          # OccupancyReport, RevenueReport
-│   │   │   ├── AI/               # DraftPaymentReminder, SummarizeViolations
-│   │   │   └── Common/           # IAppDbContext, ICurrentUser, ILlmClient
+│   │   ├── Dormitory.Application/dormitory_application/
+│   │   │   ├── identity/schemas.py
+│   │   │   ├── housing/          # schemas, interfaces, service
+│   │   │   ├── contracts/        # application workflows tuần 2
+│   │   │   ├── utilities/        # readings, Excel import, tariffs
+│   │   │   ├── billing/          # generate bill, payment, receipt
+│   │   │   ├── violations/
+│   │   │   ├── reports/          # OccupancyReport, RevenueReport
+│   │   │   ├── ai/               # DraftPaymentReminder, SummarizeViolations
+│   │   │   └── common/errors.py
 │   │   │
-│   │   ├── Dormitory.Infrastructure/
-│   │   │   ├── Persistence/
-│   │   │   │   ├── AppDbContext.cs
-│   │   │   │   ├── Configurations/
-│   │   │   │   ├── Migrations/
-│   │   │   │   └── Seed/
-│   │   │   ├── Identity/
-│   │   │   ├── Excel/            # ClosedXML template + import
-│   │   │   ├── AI/               # OpenAiLlmClient
-│   │   │   └── DependencyInjection.cs
+│   │   ├── Dormitory.Infrastructure/dormitory_infrastructure/
+│   │   │   ├── persistence/      # database, models, repositories, migrations
+│   │   │   ├── identity/         # JWT, Argon2, seed 3 role
+│   │   │   ├── excel/            # openpyxl template + import
+│   │   │   └── ai/               # OpenAI client
 │   │   │
-│   │   └── Dormitory.Api/
-│   │       ├── Controllers/
-│   │       ├── Middleware/       # exception handling -> errorCode
-│   │       ├── Authorization/    # policy: "OwnDataOnly", role policy
-│   │       ├── Program.cs
-│   │       └── appsettings.json
+│   │   └── Dormitory.Api/dormitory_api/
+│   │       ├── controllers/      # auth, housing
+│   │       ├── middleware/       # exception handling -> errorCode
+│   │       ├── authorization/    # dependency kiểm tra role
+│   │       ├── dependencies.py
+│   │       └── main.py
 │   │
-│   └── web/
+│   └── frontend/
 │       ├── src/
 │       │   ├── app/               # ConfigProvider theme, router root
 │       │   ├── api/                # gọi API, DTO type
@@ -121,8 +112,8 @@ dormitory-management/
 │       └── vite.config.ts
 │
 ├── tests/
-│   ├── Dormitory.Domain.Tests/         # test BillingCalculator (ưu tiên cao nhất)
-│   └── Dormitory.Api.IntegrationTests/ # test luồng đăng ký -> hợp đồng -> hoá đơn
+│   ├── Dormitory.Domain.Tests/         # pytest business rules
+│   └── Dormitory.Api.IntegrationTests/ # pytest luồng API chính
 │
 ├── scripts/
 │   ├── dev-up.sh
@@ -291,13 +282,13 @@ volumes:
   pgdata:
 ```
 
-Chạy local: `docker compose up -d` → `dotnet ef database update` → `dotnet run` (API) → `npm run dev` (web).
+Chạy local: `docker compose up -d` → `alembic upgrade head` → `uvicorn dormitory_api.main:app` → `npm run dev`.
 
 ---
 
 ## 7. Naming convention (ngắn gọn, để cả nhóm thống nhất từ đầu)
 
-- **C# backend**: PascalCase cho class/method, camelCase cho biến local, tên bảng số nhiều snake_case ở PostgreSQL (`bed_assignments`), cột snake_case.
+- **Python backend**: PascalCase cho class, snake_case cho hàm/biến/module, tên bảng số nhiều snake_case ở PostgreSQL (`bed_assignments`), cột snake_case.
 - **API route**: kebab-case, số nhiều cho collection (`/housing-applications`).
 - **React**: PascalCase cho component (`RoomMatrix.tsx`), camelCase cho hook/function, tên file feature theo domain (`features/billing/BillDetail.tsx`).
 - **Enum trạng thái**: PascalCase tiếng Anh trong code (`Approved`, `PartiallyPaid`) — hiển thị tiếng Việt ở tầng UI qua bảng mapping, không hard-code chuỗi tiếng Việt trong logic.
@@ -317,7 +308,7 @@ Chạy local: `docker compose up -d` → `dotnet ef database update` → `dotnet
 
 ## 9. Migration & Seed
 
-- Mỗi thay đổi schema = 1 migration (`dotnet ef migrations add ...`), không sửa migration đã chạy.
+- Mỗi thay đổi schema = 1 migration (`alembic revision --autogenerate -m ...`), không sửa migration đã chạy.
 - Seed dữ liệu demo (`scripts/seed.sh`): 1 Admin, 2 Staff, 5–10 Student, 1 tòa với vài phòng/giường, 1 bảng giá điện/nước có 2–3 bậc — đủ để chạy hết checklist nghiệm thu ở file phân tích (Mục 7).
 - Không hard-code mật khẩu admin production trong source; MVP đồ án có thể seed qua `appsettings.Development.json` nhưng cần ghi rõ trong README là "chỉ dùng cho môi trường phát triển".
 

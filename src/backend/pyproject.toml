@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dormitory-management-api"
+version = "0.1.0"
+description = "Dormitory management modular monolith"
+requires-python = ">=3.12"
+dependencies = [
+  "alembic>=1.16,<2",
+  "fastapi>=0.116,<1",
+  "psycopg[binary]>=3.2,<4",
+  "pydantic-settings>=2.10,<3",
+  "pwdlib[argon2]>=0.2,<1",
+  "pyjwt>=2.10,<3",
+  "python-multipart>=0.0.20,<1",
+  "sqlalchemy>=2.0,<3",
+  "uvicorn[standard]>=0.35,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx>=0.28,<1",
+  "pytest>=8.4,<9",
+  "pytest-cov>=6.2,<7",
+]
+
+[tool.setuptools.packages.find]
+where = ["Dormitory.Domain", "Dormitory.Application", "Dormitory.Infrastructure", "Dormitory.Api"]
+
+[tool.pytest.ini_options]
+testpaths = ["../../tests"]
+python_files = ["test_*.py"]
+addopts = "-q --disable-warnings"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

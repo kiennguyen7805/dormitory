@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Điện nước — Hệ thống Quản lý KTX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../shared/styles/design-system.css">
+</head>
+<body data-role="admin" data-page="utilities" data-title="Điện nước">
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Điện nước & Tính phí</div>
+    <div class="page-subtitle">Biểu giá theo bậc, ghi chỉ số, import bằng Excel</div>
+  </div>
+</div>
+
+<div class="tabs" data-tabgroup="ut">
+  <div class="tab-item active" data-tab="tariff">Biểu giá theo bậc</div>
+  <div class="tab-item" data-tab="manual">Ghi chỉ số thủ công</div>
+  <div class="tab-item" data-tab="import">Import bằng Excel</div>
+</div>
+
+<!-- TAB 1: Biểu giá -->
+<div class="tab-panel active" data-tabpanel="tariff" data-tabgroup="ut">
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;">
+    <div class="card">
+      <div class="card-header">
+        <div class="section-title">⚡ Biểu giá điện (đang hiệu lực)</div>
+        <button class="btn btn-sm btn-outline" onclick="openModal('modalTariff')">+ Thêm bậc</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Bậc</th><th>Từ (kWh)</th><th>Đến (kWh)</th><th>Đơn giá</th></tr></thead>
+          <tbody id="electricTiers"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="section-title">🚰 Biểu giá nước (đang hiệu lực)</div>
+        <button class="btn btn-sm btn-outline" onclick="openModal('modalTariff')">+ Thêm bậc</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Bậc</th><th>Từ (m³)</th><th>Đến (m³)</th><th>Đơn giá</th></tr></thead>
+          <tbody id="waterTiers"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <p class="form-hint" style="margin-top:14px;">Giá được snapshot vào hoá đơn tại thời điểm phát hành — thay đổi bảng giá không ảnh hưởng hoá đơn đã lập trước đó.</p>
+</div>
+
+<!-- TAB 2: Ghi chỉ số thủ công -->
+<div class="tab-panel" data-tabpanel="manual" data-tabgroup="ut">
+  <div class="card">
+    <div class="card-header"><div class="section-title">Nhập chỉ số điện nước — Kỳ 08/2026</div></div>
+    <div class="card-body">
+      <div class="form-grid-2">
+        <div class="form-row"><label>Chọn phòng</label><select class="input"><option>A-305</option><option>A-201</option><option>B-102</option></select></div>
+        <div class="form-row"><label>Kỳ tính</label><input class="input" value="01/08/2026 – 31/08/2026" disabled></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Chỉ số điện cũ (kWh)</label><input class="input" value="1220" disabled></div>
+        <div class="form-row"><label>Chỉ số điện mới (kWh)</label><input class="input" id="elecCur" type="number" value="1340"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Chỉ số nước cũ (m³)</label><input class="input" value="88" disabled></div>
+        <div class="form-row"><label>Chỉ số nước mới (m³)</label><input class="input" id="waterCur" type="number" value="96"></div>
+      </div>
+      <div class="form-error" id="readingError" style="display:none;">Chỉ số mới phải lớn hơn hoặc bằng chỉ số cũ.</div>
+      <button class="btn btn-primary" onclick="saveReading()">Lưu chỉ số</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px;">
+    <div class="card-header"><div class="section-title">Chỉ số đã ghi nhận — Kỳ 08/2026</div></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Phòng</th><th>Điện cũ → mới</th><th>Tiêu thụ điện</th><th>Nước cũ → mới</th><th>Tiêu thụ nước</th><th>Nguồn</th></tr></thead>
+        <tbody id="readingBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: Import Excel -->
+<div class="tab-panel" data-tabpanel="import" data-tabgroup="ut">
+  <div class="card">
+    <div class="card-header"><div class="section-title">Import chỉ số bằng Excel</div></div>
+    <div class="card-body">
+      <div class="row-between">
+        <div>
+          <div class="fw-medium">Bước 1 — Tải template mẫu</div>
+          <div class="text-secondary text-sm">Điền chỉ số cho nhiều phòng cùng lúc theo đúng cấu trúc mẫu.</div>
+        </div>
+        <button class="btn btn-outline">⬇ Tải template .xlsx</button>
+      </div>
+      <hr class="divider">
+      <div class="row-between">
+        <div>
+          <div class="fw-medium">Bước 2 — Tải file đã điền lên</div>
+          <div class="text-secondary text-sm">Hệ thống sẽ kiểm tra dữ liệu trước khi lưu chính thức.</div>
+        </div>
+        <button class="btn btn-primary" onclick="runPreview()">⬆ Tải lên & Xem trước</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="previewCard" style="margin-top:18px; display:none;">
+    <div class="card-header">
+      <div class="section-title">Kết quả kiểm tra — meter-readings-08-2026.xlsx</div>
+      <span class="badge badge-info">Đang xem trước, chưa lưu</span>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Dòng</th><th>Phòng</th><th>Điện cũ → mới</th><th>Nước cũ → mới</th><th>Kết quả</th></tr></thead>
+        <tbody>
+          <tr><td>2</td><td>A-102</td><td>860 → 940</td><td>60 → 66</td><td><span class="badge badge-success">Hợp lệ</span></td></tr>
+          <tr><td>3</td><td>A-103</td><td>900 → 890</td><td>55 → 60</td><td><span class="badge badge-error">Lỗi: điện mới &lt; cũ</span></td></tr>
+          <tr><td>4</td><td>B-201</td><td>1210 → 1298</td><td>90 → 97</td><td><span class="badge badge-success">Hợp lệ</span></td></tr>
+          <tr><td>5</td><td>B-202</td><td>1000 → 1040</td><td>—</td><td><span class="badge badge-warning">Thiếu chỉ số nước</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer" style="border-top:1px solid var(--border);">
+      <div class="text-secondary text-sm" style="margin-right:auto;">2 dòng hợp lệ · 1 lỗi · 1 cảnh báo</div>
+      <button class="btn btn-ghost">Huỷ</button>
+      <button class="btn btn-primary" onclick="showToast('Đã lưu 2 dòng hợp lệ vào hệ thống.')">Xác nhận lưu dòng hợp lệ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal thêm bậc giá -->
+<div class="modal-overlay" id="modalTariff">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Thêm bậc giá</div><button class="modal-close" onclick="closeModal('modalTariff')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Loại</label><select class="input"><option>Điện</option><option>Nước</option></select></div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Từ</label><input class="input" type="number" placeholder="0"></div>
+        <div class="form-row"><label>Đến (để trống nếu không giới hạn)</label><input class="input" type="number" placeholder="50"></div>
+      </div>
+      <div class="form-row"><label>Đơn giá (đ)</label><input class="input" type="number" placeholder="1800"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalTariff')">Huỷ</button>
+      <button class="btn btn-primary" onclick="closeModal('modalTariff'); showToast('Đã thêm bậc giá mới.')">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../shared/scripts/mock-data.js"></script>
+<script src="../../shared/scripts/app.js"></script>
+<script src="../../shared/scripts/layout.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const eTbody = document.getElementById('electricTiers');
+    MOCK.tariffTiers.electric.forEach((t, i) => {
+      eTbody.innerHTML += `<tr><td>Bậc ${i+1}</td><td>${t.from}</td><td>${t.to ?? '∞'}</td><td>${fmtMoney(t.price)}</td></tr>`;
+    });
+    const wTbody = document.getElementById('waterTiers');
+    MOCK.tariffTiers.water.forEach((t, i) => {
+      wTbody.innerHTML += `<tr><td>Bậc ${i+1}</td><td>${t.from}</td><td>${t.to ?? '∞'}</td><td>${fmtMoney(t.price)}</td></tr>`;
+    });
+    const rBody = document.getElementById('readingBody');
+    MOCK.meterReadings.forEach(r => {
+      rBody.innerHTML += `<tr>
+        <td class="fw-medium">${r.room}</td>
+        <td>${r.electricPrev} → ${r.electricCur}</td>
+        <td>${r.electricCur - r.electricPrev} kWh</td>
+        <td>${r.waterPrev} → ${r.waterCur}</td>
+        <td>${r.waterCur - r.waterPrev} m³</td>
+        <td>${r.source === 'Manual' ? badgeHtml('Draft').replace('Bản nháp','Nhập tay') : badgeHtml('Importing').replace('Đang import','Đã import')}</td>
+      </tr>`;
+    });
+  });
+
+  function saveReading() {
+    const elec = Number(document.getElementById('elecCur').value);
+    const water = Number(document.getElementById('waterCur').value);
+    const err = document.getElementById('readingError');
+    if (elec < 1220 || water < 88) { err.style.display = 'block'; return; }
+    err.style.display = 'none';
+    showToast('Đã lưu chỉ số điện nước cho phòng A-305.');
+  }
+  function runPreview() {
+    document.getElementById('previewCard').style.display = 'block';
+    document.getElementById('previewCard').scrollIntoView({ behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>

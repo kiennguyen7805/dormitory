@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chỗ ở hiện tại — Hệ thống Quản lý KTX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../shared/styles/design-system.css">
+</head>
+<body data-role="student" data-page="dashboard" data-title="Chỗ ở hiện tại">
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Chào bạn, Trần Minh Khoa 👋</div>
+    <div class="page-subtitle">Mã sinh viên SV0177 · Học kỳ 1, năm học 2026–2027</div>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns: 1.3fr 1fr; gap:18px; align-items:start;">
+  <div class="accent-card">
+    <div class="row-between" style="align-items:flex-start;">
+      <div>
+        <div class="text-secondary text-sm fw-medium">CHỖ Ở HIỆN TẠI</div>
+        <div class="text-2xl fw-bold" style="margin-top:6px;">Toà A · Phòng 305</div>
+        <div class="text-secondary" style="margin-top:2px;">Giường A-305-02</div>
+      </div>
+      <span class="badge badge-success">Đang hiệu lực</span>
+    </div>
+    <hr class="divider">
+    <div class="form-grid-2">
+      <div>
+        <div class="text-secondary text-xs">Số hợp đồng</div>
+        <div class="fw-semibold">HD-0231</div>
+      </div>
+      <div>
+        <div class="text-secondary text-xs">Hiệu lực đến</div>
+        <div class="fw-semibold">30/06/2027</div>
+      </div>
+      <div>
+        <div class="text-secondary text-xs">Giá phòng / tháng</div>
+        <div class="fw-semibold">850.000 đ</div>
+      </div>
+      <div>
+        <div class="text-secondary text-xs">Ngày vào ở</div>
+        <div class="fw-semibold">16/08/2026</div>
+      </div>
+    </div>
+    <div style="margin-top:16px; display:flex; gap:10px;">
+      <a href="../applications/student-application.html" class="btn btn-outline btn-sm">Gửi nguyện vọng chuyển phòng</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="section-title">Cần lưu ý</div></div>
+    <div class="card-body stack-gap" style="gap:14px;">
+      <div class="row-between">
+        <div>
+          <div class="fw-medium">Hoá đơn tháng 08/2026</div>
+          <div class="text-secondary text-xs">Hạn thanh toán 05/09/2026</div>
+        </div>
+        <span class="badge badge-error">Quá hạn</span>
+      </div>
+      <hr class="divider" style="margin:0">
+      <div class="row-between">
+        <div>
+          <div class="fw-medium">1 vi phạm đang chờ xác nhận</div>
+          <div class="text-secondary text-xs">Nấu ăn sai quy định — 20/08/2026</div>
+        </div>
+        <span class="badge badge-error">Đã xác nhận</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:18px;">
+  <div class="card-header">
+    <div class="section-title">Hoá đơn gần đây</div>
+    <a href="../billing/student-bills.html" class="btn btn-sm btn-ghost">Xem tất cả →</a>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Số hoá đơn</th><th>Kỳ</th><th>Tổng tiền</th><th>Còn nợ</th><th>Trạng thái</th></tr></thead>
+      <tbody id="billsBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="../../shared/scripts/mock-data.js"></script>
+<script src="../../shared/scripts/app.js"></script>
+<script src="../../shared/scripts/layout.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tbody = document.getElementById('billsBody');
+    MOCK.bills.filter(b => b.code === 'SV0177').forEach(b => {
+      tbody.innerHTML += `<tr>
+        <td class="fw-medium">${b.no}</td>
+        <td>${b.period}</td>
+        <td>${fmtMoney(b.total)}</td>
+        <td class="fw-semibold">${fmtMoney(b.total - b.paid)}</td>
+        <td>${badgeHtml(b.status)}</td>
+      </tr>`;
+    });
+  });
+</script>
+</body>
+</html>
