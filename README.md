@@ -73,7 +73,7 @@ Frontend chạy tại `http://localhost:5173`.
 
 Chỉ dùng các mật khẩu này cho môi trường phát triển.
 
-## Phạm vi hoàn thành tuần 1
+## Phạm vi hoàn thành tuần 1–2
 
 - Docker Compose cho PostgreSQL và migration đầu tiên.
 - Seed ba role và một tài khoản demo cho mỗi role.
@@ -82,7 +82,31 @@ Chỉ dùng các mật khẩu này cho môi trường phát triển.
 - F05: room matrix; trạng thái giường là dữ liệu suy ra, không nhận từ request.
 - Frontend login, layout Admin/Staff và Student, routing theo role.
 - Frontend quản lý cơ sở vật chất và xem room matrix.
+- Frontend tuần 1 có đủ thao tác thêm, sửa và xóa tòa nhà, loại phòng, phòng, giường.
 - Test tích hợp luồng demo cuối tuần 1.
+- F06–F07: Sinh viên gửi đăng ký; Staff/Admin lọc, duyệt hoặc từ chối kèm lý do.
+- F08: Phân giường và tạo hợp đồng trong một transaction; khóa giường và chặn
+  trùng khoảng thời gian bằng lỗi `BED_ASSIGNMENT_CONFLICT`.
+- F09: Sinh viên/Staff xem hợp đồng và toàn bộ lịch sử phân giường.
+- F10–F11: Chuyển giường giữ lịch sử; chấm dứt hợp đồng giải phóng giường.
+- Room matrix suy ra đủ `Available`, `Occupied`, `Maintenance` từ assignment thực tế.
+- Frontend có trang đăng ký, quản lý duyệt/phân giường, chuyển/chấm dứt hợp đồng và
+  trang “Chỗ ở của tôi”.
+- Integration test bao phủ luồng tuần 2 từ đăng ký đến chấm dứt.
+
+## API chính tuần 2
+
+| Method | Endpoint | Vai trò |
+|---|---|---|
+| POST | `/api/housing-applications` | Student |
+| GET | `/api/housing-applications?status=` | Student xem của mình; Admin/Staff xem toàn bộ |
+| POST | `/api/housing-applications/{id}/approve` | Admin/Staff |
+| POST | `/api/housing-applications/{id}/reject` | Admin/Staff |
+| POST | `/api/contracts/{applicationId}/assign-bed` | Admin/Staff |
+| GET | `/api/contracts`, `/api/contracts/me` | Theo quyền sở hữu |
+| GET | `/api/contracts/{id}/assignment-history` | Theo quyền sở hữu |
+| POST | `/api/contracts/{id}/transfer` | Admin/Staff |
+| POST | `/api/contracts/{id}/terminate` | Admin/Staff |
 
 ## Kiểm tra
 

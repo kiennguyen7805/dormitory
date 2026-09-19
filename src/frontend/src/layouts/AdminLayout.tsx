@@ -1,4 +1,4 @@
-import { ApartmentOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons'
+import { ApartmentOutlined, FileProtectOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import { Avatar, Button, Layout, Menu, Space, Typography } from 'antd'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 
@@ -28,12 +28,13 @@ export default function AdminLayout() {
           items={[
             { key: '/admin/housing', icon: <ApartmentOutlined />, label: 'Cơ sở vật chất' },
             { key: '/admin/room-matrix', icon: <ApartmentOutlined />, label: 'Sơ đồ phòng/giường' },
+            { key: '/admin/applications', icon: <FileProtectOutlined />, label: 'Đăng ký & hợp đồng' },
           ]}
         />
       </Sider>
       <Layout>
         <Header className="topbar">
-          <Typography.Text strong>Tuần 1 — Nền tảng và cơ sở vật chất</Typography.Text>
+          <Typography.Text strong>Quản lý ký túc xá</Typography.Text>
           <Space>
             <Avatar icon={<UserOutlined />} />
             <div className="user-summary">

@@ -23,7 +23,7 @@ from dormitory_application.housing.schemas import (
     RoomUpdate,
 )
 
-from .models import BedModel, BuildingModel, RoomModel, RoomTypeModel
+from .models import BedAssignmentModel, BedModel, BuildingModel, RoomModel, RoomTypeModel
 
 
 class SqlAlchemyHousingRepository:
@@ -59,8 +59,15 @@ class SqlAlchemyHousingRepository:
         )
 
     @staticmethod
-    def _bed(model: BedModel) -> BedRead:
-        status = "Available" if model.is_active else "Maintenance"
+    def _bed(model: BedModel, occupied_bed_ids: set[UUID] | None = None) -> BedRead:
+        occupied_bed_ids = occupied_bed_ids or set()
+        status = (
+            "Maintenance"
+            if not model.is_active
+            else "Occupied"
+            if model.id in occupied_bed_ids
+            else "Available"
+        )
         return BedRead(
             id=model.id,
             room_id=model.room_id,
@@ -174,7 +181,9 @@ class SqlAlchemyHousingRepository:
         statement = select(BedModel).order_by(BedModel.code)
         if room_id:
             statement = statement.where(BedModel.room_id == room_id)
-        return [self._bed(x) for x in self.db.scalars(statement).all()]
+        beds = self.db.scalars(statement).all()
+        occupied = self._occupied_bed_ids()
+        return [self._bed(x, occupied) for x in beds]
 
     def create_bed(self, data: BedCreate) -> BedRead:
         item = BedModel(**data.model_dump())
@@ -209,6 +218,7 @@ class SqlAlchemyHousingRepository:
             selectinload(BuildingModel.rooms).selectinload(RoomModel.beds),
         ).order_by(BuildingModel.code)
         buildings = self.db.scalars(statement).all()
+        occupied = self._occupied_bed_ids()
         return [
             RoomMatrixBuilding(
                 id=building.id,
@@ -221,7 +231,11 @@ class SqlAlchemyHousingRepository:
                         floor=room.floor,
                         room_type=room.room_type.name,
                         beds=[
-                            RoomMatrixBed(id=bed.id, code=bed.code, status=self._bed(bed).status)
+                            RoomMatrixBed(
+                                id=bed.id,
+                                code=bed.code,
+                                status=self._bed(bed, occupied).status,
+                            )
                             for bed in sorted(room.beds, key=lambda x: x.code)
                         ],
                     )
@@ -230,3 +244,12 @@ class SqlAlchemyHousingRepository:
             )
             for building in buildings
         ]
+
+    def _occupied_bed_ids(self) -> set[UUID]:
+        return set(
+            self.db.scalars(
+                select(BedAssignmentModel.bed_id).where(
+                    BedAssignmentModel.status == "Active"
+                )
+            ).all()
+        )

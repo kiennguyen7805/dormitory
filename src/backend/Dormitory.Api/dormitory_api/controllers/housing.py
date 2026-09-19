@@ -19,7 +19,12 @@ from dormitory_application.housing import (
     RoomUpdate,
 )
 
-from dormitory_api.dependencies import admin_only, admin_or_staff, get_housing_service
+from dormitory_api.dependencies import (
+    admin_only,
+    admin_or_staff,
+    get_current_user,
+    get_housing_service,
+)
 
 router = APIRouter(prefix="/api", tags=["Housing"])
 
@@ -50,7 +55,7 @@ def delete_building(item_id: UUID, service: HousingService = Depends(get_housing
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.get("/room-types", response_model=list[RoomTypeRead], dependencies=[Depends(admin_or_staff)])
+@router.get("/room-types", response_model=list[RoomTypeRead], dependencies=[Depends(get_current_user)])
 def list_room_types(service: HousingService = Depends(get_housing_service)):
     return service.list_room_types()
 

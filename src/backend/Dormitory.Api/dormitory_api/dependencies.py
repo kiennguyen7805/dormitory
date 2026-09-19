@@ -8,17 +8,25 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from dormitory_application.housing import HousingService
+from dormitory_application.contracts import ContractService
 from dormitory_domain.common import RoleName
 from dormitory_infrastructure.identity import decode_access_token
 from dormitory_infrastructure.persistence import get_db
 from dormitory_infrastructure.persistence.models import UserModel
 from dormitory_infrastructure.persistence.repositories import SqlAlchemyHousingRepository
+from dormitory_infrastructure.persistence.contract_repositories import (
+    SqlAlchemyContractRepository,
+)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
 def get_housing_service(db: Session = Depends(get_db)) -> HousingService:
     return HousingService(SqlAlchemyHousingRepository(db))
+
+
+def get_contract_service(db: Session = Depends(get_db)) -> ContractService:
+    return ContractService(SqlAlchemyContractRepository(db))
 
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> UserModel:

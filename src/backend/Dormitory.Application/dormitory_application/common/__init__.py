@@ -1,3 +1,3 @@
-from .errors import ConflictError, NotFoundError
+from .errors import BusinessRuleError, ConflictError, NotFoundError
 
-__all__ = ["ConflictError", "NotFoundError"]
+__all__ = ["BusinessRuleError", "ConflictError", "NotFoundError"]

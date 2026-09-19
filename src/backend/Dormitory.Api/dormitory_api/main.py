@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from dormitory_api.controllers import auth_router, housing_router
+from dormitory_api.controllers import auth_router, contracts_router, housing_router
 from dormitory_api.middleware import register_error_handlers
 from dormitory_infrastructure.persistence.config import get_settings
 
@@ -18,6 +18,7 @@ app.add_middleware(
 register_error_handlers(app)
 app.include_router(auth_router)
 app.include_router(housing_router)
+app.include_router(contracts_router)
 
 
 @app.get("/health", tags=["System"])
