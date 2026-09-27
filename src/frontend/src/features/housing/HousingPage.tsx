@@ -39,7 +39,7 @@ export default function HousingPage() {
     catch (error) { message.error(error instanceof Error ? error.message : 'Không thể tạo dữ liệu') }
   }
   const remove = async (path: string) => {
-    try { await apiRequest(path, { method: 'DELETE' }); message.success('Đã xóa'); await load() }
+    try { await apiRequest(path, { method: 'DELETE' }); message.success('Đã vô hiệu hóa'); await load() }
     catch (error) { message.error(error instanceof Error ? error.message : 'Không thể xóa') }
   }
   const openEdit = (state: EditState) => {
@@ -78,7 +78,7 @@ export default function HousingPage() {
     </Form></Card>
     <Table rowKey="id" loading={loading} dataSource={buildings} columns={[
       { title: 'Mã', dataIndex: 'code' }, { title: 'Tên tòa', dataIndex: 'name' }, { title: 'Địa chỉ', dataIndex: 'address' }, { title: 'Số tầng', dataIndex: 'floors' },
-      { title: '', render: (_, x) => <Space><Button icon={<EditOutlined />} onClick={() => openEdit({ kind: 'building', item: x })} /><Popconfirm title="Xóa tòa nhà?" onConfirm={() => remove(`/buildings/${x.id}`)}><Button danger icon={<DeleteOutlined />} /></Popconfirm></Space> },
+      { title: '', render: (_, x) => <Space><Button icon={<EditOutlined />} onClick={() => openEdit({ kind: 'building', item: x })} /><Popconfirm title="Vô hiệu hóa tòa nhà?" onConfirm={() => remove(`/buildings/${x.id}`)}><Button danger icon={<DeleteOutlined />} /></Popconfirm></Space> },
     ]} />
   </Space>
 

@@ -5,6 +5,8 @@ export interface User {
   email: string
   full_name: string
   role: Role
+  is_active: boolean
+  permissions: string[]
 }
 
 export interface Session {

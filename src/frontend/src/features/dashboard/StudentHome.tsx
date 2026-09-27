@@ -10,8 +10,8 @@ export default function StudentHome() {
       <Typography.Paragraph type="secondary">Tài khoản sinh viên đã đăng nhập thành công.</Typography.Paragraph>
       <Row gutter={16}>
         <Col xs={24} md={8}><Card title="Vai trò"><Tag color="blue">Student</Tag></Card></Col>
-        <Col xs={24} md={8}><Card title="Đăng ký ở">Sẽ triển khai ở tuần 2</Card></Col>
-        <Col xs={24} md={8}><Card title="Hóa đơn">Sẽ triển khai ở tuần 3</Card></Col>
+        <Col xs={24} md={8}><Card title="Đăng ký ở">Theo dõi đăng ký và hợp đồng tại mục Chỗ ở của tôi.</Card></Col>
+        <Col xs={24} md={8}><Card title="Hồ sơ">Cập nhật thông tin sinh viên và liên hệ khẩn cấp.</Card></Col>
       </Row>
     </div>
   )

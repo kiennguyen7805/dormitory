@@ -24,6 +24,7 @@ export default function StudentLayout() {
               { key: '/student', label: 'Trang chủ' },
               { key: '/student/applications', label: 'Đăng ký ở KTX' },
               { key: '/student/my-housing', label: 'Chỗ ở của tôi' },
+              { key: '/student/profile', label: 'Hồ sơ' },
             ]}
           />
         </Space>
