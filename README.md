@@ -42,7 +42,7 @@ Violations, Reports và AI.
 cp .env.example .env
 python -m venv .venv
 # Windows PowerShell: .venv\Scripts\Activate.ps1
-# Linux/macOS: source .venv/bin/activate
+
 pip install -e "src/backend[dev]"
 docker compose up -d postgres
 cd src/backend
@@ -73,7 +73,7 @@ Frontend chạy tại `http://localhost:5173`.
 
 Chỉ dùng các mật khẩu này cho môi trường phát triển.
 
-## Phạm vi hoàn thành tuần 1–2
+## Phạm vi hoàn thành tuần 1–3
 
 - Docker Compose cho PostgreSQL và migration đầu tiên.
 - Seed ba role và một tài khoản demo cho mỗi role.
@@ -93,6 +93,26 @@ Chỉ dùng các mật khẩu này cho môi trường phát triển.
 - Frontend có trang đăng ký, quản lý duyệt/phân giường, chuyển/chấm dứt hợp đồng và
   trang “Chỗ ở của tôi”.
 - Integration test bao phủ luồng tuần 2 từ đăng ký đến chấm dứt.
+- F12: quản lý biểu giá điện/nước theo thời gian, đồng giá hoặc lũy tiến nhiều bậc.
+- F13: ghi chỉ số thủ công, chặn chỉ số hiện tại nhỏ hơn chỉ số trước và lưu snapshot biểu giá.
+- F14: tải mẫu Excel, xem trước từng dòng, báo lỗi và xác nhận nhập dữ liệu.
+- F15: bộ tính tiền điện/nước độc lập, có unit test cho biên bậc giá và làm tròn.
+- F16: sinh hóa đơn gồm tiền phòng, điện, nước; khóa idempotency ngăn tạo trùng cùng kỳ.
+- Frontend `/admin/utilities` cho phép cấu hình biểu giá/công tơ, nhập chỉ số và sinh hóa đơn.
+- API tuần 3 được công khai tại `/api/v1`; `/api` tiếp tục được giữ để tương thích.
+
+## API chính tuần 3
+
+| Method | Endpoint | Chức năng |
+|---|---|---|
+| GET/POST | `/api/v1/utility-tariffs` | Danh sách và tạo biểu giá |
+| GET/POST | `/api/v1/meters` | Danh sách và gắn công tơ vào phòng |
+| GET/POST | `/api/v1/meter-readings` | Xem và ghi chỉ số thủ công |
+| GET | `/api/v1/meter-readings/template` | Tải mẫu Excel |
+| POST | `/api/v1/meter-readings/import/preview` | Kiểm tra và xem trước Excel |
+| POST | `/api/v1/meter-readings/import/{batchId}/confirm` | Xác nhận nhập Excel |
+| GET | `/api/v1/bills` | Danh sách hóa đơn |
+| POST | `/api/v1/bills/generate` | Sinh hóa đơn chống trùng |
 
 ## API chính tuần 2
 

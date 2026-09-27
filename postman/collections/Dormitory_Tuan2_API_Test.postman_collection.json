@@ -1,0 +1,877 @@
+{
+  "info": {
+    "_postman_id": "9b12a845-cfa4-469a-bdf8-c11f71295e80",
+    "name": "Dormitory - Tuần 2 (F06 - F11)",
+    "description": "Bộ Collection kiểm thử API Tuần 2 theo tài liệu HUONG_DAN_TEST_API_VA_MINH_CHUNG_TUAN_2.md",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00. Health Check (T2-01)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["health"]
+        },
+        "description": "Kiểm tra hệ sinh thái API và server đang chạy (Minh chứng T2-01)"
+      },
+      "response": []
+    },
+    {
+      "name": "01. Đăng nhập",
+      "item": [
+        {
+          "name": "1.1 Login Student",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Đăng nhập Student thành công\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.user.role).to.eql(\"Student\");",
+                  "    pm.environment.set(\"studentToken\", json.access_token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@dormitory.local\",\n  \"password\": \"Student@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "1.2 Login Staff",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Đăng nhập Staff thành công\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.user.role).to.eql(\"Staff\");",
+                  "    pm.environment.set(\"staffToken\", json.access_token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"staff@dormitory.local\",\n  \"password\": \"Staff@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "1.3 Login Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Đăng nhập Admin thành công\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.user.role).to.eql(\"Admin\");",
+                  "    pm.environment.set(\"adminToken\", json.access_token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@dormitory.local\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02. Chuẩn bị tài nguyên",
+      "item": [
+        {
+          "name": "2.1 Lấy Room Types",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Lấy danh sách room types\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var types = pm.response.json();",
+                  "    pm.expect(types.length).to.be.above(0);",
+                  "    pm.environment.set(\"roomTypeId\", types[0].id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/room-types",
+              "host": ["{{baseUrl}}"],
+              "path": ["room-types"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2.2 Lấy Beds (Cần 2 giường trống)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Có tối thiểu hai giường trống\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var available = pm.response.json().filter(function(item) {",
+                  "        return item.status === \"Available\" && item.is_active;",
+                  "    });",
+                  "    pm.expect(available.length).to.be.at.least(2);",
+                  "    pm.environment.set(\"bed1Id\", available[0].id);",
+                  "    pm.environment.set(\"bed2Id\", available[1].id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/beds",
+              "host": ["{{baseUrl}}"],
+              "path": ["beds"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03. F06 - Sinh viên nộp đơn",
+      "item": [
+        {
+          "name": "3.1 Sinh viên nộp đơn đăng ký (T2-02)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"F06 tạo đăng ký thành công (201 Submitted)\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql(\"Submitted\");",
+                  "    pm.environment.set(\"applicationId\", json.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"term_code\": \"W2-MAIN-2026\",\n  \"preferred_room_type_id\": \"{{roomTypeId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/housing-applications",
+              "host": ["{{baseUrl}}"],
+              "path": ["housing-applications"]
+            },
+            "description": "Chụp ảnh minh chứng T2-02: POST 201 Created, status Submitted, student_name, term_code"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04. F07 - Duyệt và từ chối",
+      "item": [
+        {
+          "name": "4.1 Staff duyệt đơn chính (T2-03 - Phần 1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"F07 duyệt đăng ký thành công\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().status).to.eql(\"Approved\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/housing-applications/{{applicationId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["housing-applications", "{{applicationId}}", "approve"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.2 Sinh viên nộp đơn phụ (để từ chối)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Tạo đơn phụ thành công\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    pm.environment.set(\"rejectApplicationId\", pm.response.json().id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"term_code\": \"W2-REJECT-2026\",\n  \"preferred_room_type_id\": \"{{roomTypeId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/housing-applications",
+              "host": ["{{baseUrl}}"],
+              "path": ["housing-applications"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.3 Staff từ chối đơn phụ kèm lý do (T2-03 - Phần 2)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"F07 từ chối đăng ký có lý do\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql(\"Rejected\");",
+                  "    pm.expect(json.rejection_reason).to.be.a(\"string\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Từ chối để kiểm thử quy trình Tuần 2\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/housing-applications/{{rejectApplicationId}}/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["housing-applications", "{{rejectApplicationId}}", "reject"]
+            },
+            "description": "Chụp ảnh minh chứng T2-03: status Rejected và rejection_reason"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05. F08 - Phân giường & Tạo hợp đồng",
+      "item": [
+        {
+          "name": "5.1 Staff phân giường và tạo hợp đồng (T2-04)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var body = pm.response.json();",
+                  "pm.test(\"F08 tạo hợp đồng và phân giường thành công\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    pm.expect(body.status).to.eql(\"Active\");",
+                  "    pm.expect(body.current_assignment.bed_id).to.eql(pm.environment.get(\"bed1Id\"));",
+                  "});",
+                  "pm.environment.set(\"contractId\", body.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bed_id\": \"{{bed1Id}}\",\n  \"start_date\": \"2026-09-20\",\n  \"end_date\": \"2027-01-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contracts/{{applicationId}}/assign-bed",
+              "host": ["{{baseUrl}}"],
+              "path": ["contracts", "{{applicationId}}", "assign-bed"]
+            },
+            "description": "Chụp ảnh T2-04: Status 201 Created, contract_no, status Active, current_assignment.bed_id"
+          },
+          "response": []
+        },
+        {
+          "name": "5.2 Kiểm tra Room Matrix (T2-11)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var targetId = pm.environment.get(\"bed1Id\");",
+                  "var allBeds = pm.response.json()",
+                  "    .flatMap(function(building) { return building.rooms; })",
+                  "    .flatMap(function(room) { return room.beds; });",
+                  "var target = allBeds.find(function(bed) { return bed.id === targetId; });",
+                  "pm.test(\"Giường 1 chuyển sang Occupied\", function () {",
+                  "    pm.expect(target).to.exist;",
+                  "    pm.expect(target.status).to.eql(\"Occupied\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/room-matrix",
+              "host": ["{{baseUrl}}"],
+              "path": ["room-matrix"]
+            },
+            "description": "Ảnh T2-11: Giường bed1Id có trạng thái Occupied"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "06. Chống phân trùng giường",
+      "item": [
+        {
+          "name": "6.1 Sinh viên nộp đơn xung đột",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Tạo đơn xung đột thành công\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    pm.environment.set(\"conflictApplicationId\", pm.response.json().id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"term_code\": \"W2-CONFLICT-2026\",\n  \"preferred_room_type_id\": \"{{roomTypeId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/housing-applications",
+              "host": ["{{baseUrl}}"],
+              "path": ["housing-applications"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6.2 Staff duyệt đơn xung đột",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Duyệt đơn xung đột thành công\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/housing-applications/{{conflictApplicationId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["housing-applications", "{{conflictApplicationId}}", "approve"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6.3 Thử phân lại bed1Id bị trùng thời gian (T2-05)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Chặn double booking trả 409 Conflict\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "    pm.expect(pm.response.json().errorCode).to.eql(\"BED_ASSIGNMENT_CONFLICT\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bed_id\": \"{{bed1Id}}\",\n  \"start_date\": \"2026-10-01\",\n  \"end_date\": \"2027-05-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contracts/{{conflictApplicationId}}/assign-bed",
+              "host": ["{{baseUrl}}"],
+              "path": ["contracts", "{{conflictApplicationId}}", "assign-bed"]
+            },
+            "description": "Chụp ảnh T2-05: Status 409 Conflict, errorCode BED_ASSIGNMENT_CONFLICT"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "07. F09 - Xem hợp đồng & Lịch sử",
+      "item": [
+        {
+          "name": "7.1 Sinh viên xem hợp đồng của mình (T2-06)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"F09 Student xem đúng hợp đồng của mình\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().id).to.eql(pm.environment.get(\"contractId\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contracts/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["contracts", "me"]
+            },
+            "description": "Chụp ảnh T2-06: Status 200, hợp đồng cá nhân của Sinh viên"
+          },
+          "response": []
+        },
+        {
+          "name": "7.2 Sinh viên xem lịch sử phân giường ban đầu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Lịch sử có 1 dòng Active\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.length).to.eql(1);",
+                  "    pm.expect(json[0].status).to.eql(\"Active\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contracts/{{contractId}}/assignment-history",
+              "host": ["{{baseUrl}}"],
+              "path": ["contracts", "{{contractId}}", "assignment-history"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "08. F10 - Chuyển giường",
+      "item": [
+        {
+          "name": "8.1 Staff chuyển sang giường mới (bed2Id)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"F10 chuyển sang giường mới thành công\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().current_assignment.bed_id).to.eql(pm.environment.get(\"bed2Id\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bed_id\": \"{{bed2Id}}\",\n  \"transfer_date\": \"2026-10-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contracts/{{contractId}}/transfer",
+              "host": ["{{baseUrl}}"],
+              "path": ["contracts", "{{contractId}}", "transfer"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8.2 Sinh viên xem lịch sử phân giường (T2-07)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var history = pm.response.json();",
+                  "pm.test(\"Lịch sử chứa 1 bản ghi Ended và 1 bản ghi Active\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(history).to.have.length(2);",
+                  "    pm.expect(history.map(function(item) { return item.status; })).to.include.members([\"Ended\", \"Active\"]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contracts/{{contractId}}/assignment-history",
+              "host": ["{{baseUrl}}"],
+              "path": ["contracts", "{{contractId}}", "assignment-history"]
+            },
+            "description": "Chụp ảnh T2-07: Thấy 2 bản ghi lịch sử: 1 Ended (bed1Id) và 1 Active (bed2Id)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "09. F11 - Chấm dứt hợp đồng & Trả giường",
+      "item": [
+        {
+          "name": "9.1 Staff chấm dứt hợp đồng (T2-08)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"F11 chấm dứt hợp đồng\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().status).to.eql(\"Terminated\");",
+                  "    pm.expect(pm.response.json().current_assignment).to.eql(null);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"termination_date\": \"2026-11-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contracts/{{contractId}}/terminate",
+              "host": ["{{baseUrl}}"],
+              "path": ["contracts", "{{contractId}}", "terminate"]
+            },
+            "description": "Chụp ảnh T2-08: Status 200, status Terminated, current_assignment null"
+          },
+          "response": []
+        },
+        {
+          "name": "9.2 Kiểm tra Room Matrix sau khi chấm dứt",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var ids = [pm.environment.get(\"bed1Id\"), pm.environment.get(\"bed2Id\")];",
+                  "var allBeds = pm.response.json()",
+                  "    .flatMap(function(building) { return building.rooms; })",
+                  "    .flatMap(function(room) { return room.beds; });",
+                  "var selected = allBeds.filter(function(bed) { return ids.includes(bed.id); });",
+                  "pm.test(\"Cả hai giường đã được giải phóng thành Available\", function () {",
+                  "    pm.expect(selected).to.have.length(2);",
+                  "    selected.forEach(function(bed) {",
+                  "        pm.expect(bed.status).to.eql(\"Available\");",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/room-matrix",
+              "host": ["{{baseUrl}}"],
+              "path": ["room-matrix"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "10. Phân quyền RBAC",
+      "item": [
+        {
+          "name": "10.1 Admin tạo đơn -> 403 Forbidden (T2-12)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Chỉ Student được tạo đăng ký, Admin nhận 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "    pm.expect(pm.response.json().detail.errorCode).to.eql(\"STUDENT_ONLY\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"term_code\": \"W2-RBAC-2026\",\n  \"preferred_room_type_id\": \"{{roomTypeId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/housing-applications",
+              "host": ["{{baseUrl}}"],
+              "path": ["housing-applications"]
+            },
+            "description": "Chụp ảnh T2-12: Status 403 Forbidden, detail.errorCode STUDENT_ONLY"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

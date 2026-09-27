@@ -1,3 +1,4 @@
+
 # PHÂN TÍCH BÀI TOÁN — HỆ THỐNG QUẢN LÝ KÝ TÚC XÁ (MVP 5 TUẦN)
 
 > Bản điều chỉnh từ tài liệu phân tích gốc, thu gọn phạm vi để **làm được trong 5 tuần**, mô tả rõ **từng chức năng làm gì**, và bổ sung **bộ thiết kế giao diện/màu sắc** còn thiếu trong bản gốc.
