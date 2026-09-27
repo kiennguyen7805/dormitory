@@ -12,9 +12,23 @@ def auth_headers(token: str) -> dict[str, str]:
 
 
 def test_health(client: TestClient) -> None:
-    response = client.get("/health")
+    root = client.get("/", follow_redirects=False)
+    assert root.status_code == 307
+    assert root.headers["location"] == "/docs"
+
+    assert client.get("/docs").status_code == 200
+    openapi = client.get("/openapi.json")
+    assert openapi.status_code == 200
+    bearer = openapi.json()["components"]["securitySchemes"]["HTTPBearer"]
+    assert bearer == {"type": "http", "scheme": "bearer"}
+
+    response = client.get("/healthz")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+    readiness = client.get("/readyz")
+    assert readiness.status_code == 200
+    assert readiness.json() == {"status": "ready", "database": "ok"}
 
 
 def test_three_seeded_roles_can_login(client: TestClient) -> None:
