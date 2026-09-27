@@ -1,0 +1,14 @@
+.git
+.github
+.venv
+.pytest_cache
+**/__pycache__
+**/*.pyc
+src/frontend
+tests
+docs
+postman
+.postman
+*.xlsx
+*.png
+*.svg

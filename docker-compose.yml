@@ -7,5 +7,45 @@ services:
       POSTGRES_PASSWORD: changeme
     ports: ["5432:5432"]
     volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dormitory -d dormitory"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg://dormitory:changeme@postgres:5432/dormitory
+      SECRET_KEY: local-development-secret-change-before-production
+      JWT_ISSUER: dormitory-api
+      JWT_AUDIENCE: dormitory-client
+      ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      REFRESH_TOKEN_EXPIRE_DAYS: 7
+      CORS_ORIGINS: http://localhost:5173,http://localhost:8000
+    command:
+      - /bin/sh
+      - -c
+      - >-
+        alembic upgrade head &&
+        python -m dormitory_infrastructure.identity.seed_cli &&
+        uvicorn dormitory_api.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  adminer:
+    image: adminer:latest
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   pgdata:
