@@ -21,7 +21,7 @@ from dormitory_api.dependencies import (
     get_current_user,
 )
 
-router = APIRouter(prefix="/api", tags=["Contracts"])
+router = APIRouter(tags=["Contracts"])
 
 
 @router.post("/housing-applications", response_model=HousingApplicationRead, status_code=201)

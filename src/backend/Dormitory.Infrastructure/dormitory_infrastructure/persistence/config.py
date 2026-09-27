@@ -12,7 +12,10 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+psycopg://dormitory:changeme@localhost:5432/dormitory"
     secret_key: str = "development-only-change-me-at-least-32-bytes"
-    access_token_expire_minutes: int = 480
+    jwt_issuer: str = "dormitory-api"
+    jwt_audience: str = "dormitory-client"
+    access_token_expire_minutes: int = 15
+    refresh_token_expire_days: int = 7
     cors_origins: str = "http://localhost:5173"
 
     @property

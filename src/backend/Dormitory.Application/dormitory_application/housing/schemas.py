@@ -28,6 +28,8 @@ class BuildingRead(BuildingBase):
 class RoomTypeBase(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     default_monthly_rate: Decimal = Field(ge=0)
+    default_capacity: int | None = Field(default=None, ge=1)
+    description: str | None = Field(default=None, max_length=500)
     is_active: bool = True
 
 
@@ -49,7 +51,11 @@ class RoomBase(BaseModel):
     room_type_id: UUID
     code: str = Field(min_length=1, max_length=20)
     floor: int = Field(ge=1, le=100)
+    gender_policy: str = Field(default="Unassigned", pattern="^(Male|Female|Mixed|Unassigned)$")
+    managed_by_staff_id: UUID | None = None
+    status: str = Field(default="Available", pattern="^(Available|Maintenance|Inactive)$")
     is_active: bool = True
+    note: str | None = Field(default=None, max_length=500)
 
 
 class RoomCreate(RoomBase):
@@ -71,6 +77,7 @@ class BedBase(BaseModel):
     room_id: UUID
     code: str = Field(min_length=1, max_length=20)
     is_active: bool = True
+    note: str | None = Field(default=None, max_length=300)
 
 
 class BedCreate(BedBase):
@@ -98,6 +105,8 @@ class RoomMatrixRoom(BaseModel):
     code: str
     floor: int
     room_type: str
+    gender_policy: str
+    managed_by_staff_id: UUID | None
     beds: list[RoomMatrixBed]
 
 
@@ -106,3 +115,10 @@ class RoomMatrixBuilding(BaseModel):
     code: str
     name: str
     rooms: list[RoomMatrixRoom]
+
+
+class RoomBulkGenderUpdate(BaseModel):
+    gender_policy: str = Field(pattern="^(Male|Female|Mixed|Unassigned)$")
+    building_id: UUID | None = None
+    floor: int | None = Field(default=None, ge=1)
+    room_ids: list[UUID] = Field(default_factory=list)

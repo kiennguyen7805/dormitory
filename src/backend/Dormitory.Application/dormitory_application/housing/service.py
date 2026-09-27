@@ -62,8 +62,8 @@ class HousingService:
         if not self.repository.delete_room_type(item_id):
             raise NotFoundError("Room type not found")
 
-    def list_rooms(self, building_id: UUID | None = None) -> list[RoomRead]:
-        return self.repository.list_rooms(building_id)
+    def list_rooms(self, building_id: UUID | None = None, staff_id: UUID | None = None) -> list[RoomRead]:
+        return self.repository.list_rooms(building_id, staff_id)
 
     def create_room(self, data: RoomCreate) -> RoomRead:
         return self.repository.create_room(data)
@@ -78,8 +78,8 @@ class HousingService:
         if not self.repository.delete_room(item_id):
             raise NotFoundError("Room not found")
 
-    def list_beds(self, room_id: UUID | None = None) -> list[BedRead]:
-        return self.repository.list_beds(room_id)
+    def list_beds(self, room_id: UUID | None = None, staff_id: UUID | None = None) -> list[BedRead]:
+        return self.repository.list_beds(room_id, staff_id)
 
     def create_bed(self, data: BedCreate) -> BedRead:
         return self.repository.create_bed(data)
@@ -94,5 +94,8 @@ class HousingService:
         if not self.repository.delete_bed(item_id):
             raise NotFoundError("Bed not found")
 
-    def room_matrix(self) -> list[RoomMatrixBuilding]:
-        return self.repository.room_matrix()
+    def room_matrix(self, staff_id: UUID | None = None) -> list[RoomMatrixBuilding]:
+        return self.repository.room_matrix(staff_id)
+
+    def bulk_update_gender(self, data, actor_id: UUID, is_admin: bool) -> list[RoomRead]:
+        return self.repository.bulk_update_gender(data, actor_id, is_admin)

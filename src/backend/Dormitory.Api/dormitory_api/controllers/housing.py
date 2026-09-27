@@ -26,7 +26,7 @@ from dormitory_api.dependencies import (
     get_housing_service,
 )
 
-router = APIRouter(prefix="/api", tags=["Housing"])
+router = APIRouter(tags=["Housing"])
 
 
 @router.get("/buildings", response_model=list[BuildingRead], dependencies=[Depends(admin_or_staff)])
