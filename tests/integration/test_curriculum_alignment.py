@@ -24,7 +24,7 @@ def test_openapi_exposes_v1_and_keeps_legacy_routes_working(client: TestClient) 
     assert _login(client, "/api")["access_token"]
 
 
-def test_refresh_token_rotates_and_logout_revokes_it(client: TestClient) -> None:
+def test_refresh_token_rotates_and_removed_auth_flows_are_not_exposed(client: TestClient) -> None:
     login = _login(client)
     old_refresh_token = login["refresh_token"]
     assert login["expires_in"] == 15 * 60
@@ -46,16 +46,9 @@ def test_refresh_token_rotates_and_logout_revokes_it(client: TestClient) -> None
     assert reused.headers["content-type"].startswith("application/problem+json")
     assert reused.json()["errorCode"] == "AUTH_INVALID_REFRESH_TOKEN"
 
-    logout = client.post(
-        "/api/v1/auth/logout",
-        headers=_headers(new_tokens["access_token"]),
-    )
-    assert logout.status_code == 204
-    revoked = client.post(
-        "/api/v1/auth/refresh",
-        json={"refresh_token": new_tokens["refresh_token"]},
-    )
-    assert revoked.status_code == 401
+    paths = client.get("/openapi.json").json()["paths"]
+    assert "/api/v1/auth/logout" not in paths
+    assert not any(path.endswith("/reset-password") for path in paths)
 
 
 def test_register_student_account(client: TestClient) -> None:

@@ -3,10 +3,10 @@ from fastapi.testclient import TestClient
 from test_week1_flow import auth_headers, login
 
 
-def test_permissions_user_management_and_profile(client: TestClient) -> None:
+def test_fixed_roles_user_management_and_profile(client: TestClient) -> None:
     admin = login(client, "admin@dormitory.local", "Admin@123")
     admin_headers = auth_headers(admin["access_token"])
-    assert "identity.users.manage" in admin["user"]["permissions"]
+    assert admin["user"]["role"] == "Admin"
 
     created = client.post(
         "/api/users",
@@ -48,6 +48,12 @@ def test_permissions_user_management_and_profile(client: TestClient) -> None:
 
     forbidden = client.get("/api/users", headers=profile_headers)
     assert forbidden.status_code == 403
+    filtered = client.get("/api/users?role=Student", headers=admin_headers)
+    assert filtered.status_code == 200, filtered.text
+    assert all(item["role"] == "Student" for item in filtered.json())
+    assert any(item["id"] == student_id for item in filtered.json())
+    assert all("permissions" not in item for item in filtered.json())
+    assert client.get("/api/permissions", headers=admin_headers).status_code == 404
 
 
 def test_deactivated_user_token_is_rejected(client: TestClient) -> None:
