@@ -117,35 +117,6 @@ class MeterReadingRead(BaseModel):
     current_reading: Decimal
     consumption: Decimal
     calculated_amount: Decimal
-    source: str
     tariff_id: UUID
     tariff_snapshot: dict
     recorded_at: datetime
-
-
-class ImportPreviewRow(BaseModel):
-    row_number: int
-    meter_code: str
-    period_start: date | None = None
-    period_end: date | None = None
-    previous_reading: Decimal | None = None
-    current_reading: Decimal | None = None
-    consumption: Decimal | None = None
-    calculated_amount: Decimal | None = None
-    valid: bool
-    errors: list[str] = Field(default_factory=list)
-
-
-class ImportPreviewRead(BaseModel):
-    batch_id: UUID
-    status: str
-    total_rows: int
-    valid_rows: int
-    invalid_rows: int
-    rows: list[ImportPreviewRow]
-
-
-class ImportConfirmRead(BaseModel):
-    batch_id: UUID
-    status: str
-    created_readings: int

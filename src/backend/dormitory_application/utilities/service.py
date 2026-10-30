@@ -28,12 +28,3 @@ class UtilityService:
 
     def list_readings(self, meter_id: UUID | None = None, period_start: date | None = None):
         return self.repository.list_readings(meter_id, period_start)
-
-    def build_template(self) -> bytes:
-        return self.repository.build_template()
-
-    def preview_import(self, content: bytes, filename: str, content_type: str, user_id: UUID):
-        return self.repository.preview_import(content, filename, content_type, user_id)
-
-    def confirm_import(self, batch_id: UUID, user_id: UUID):
-        return self.repository.confirm_import(batch_id, user_id)
