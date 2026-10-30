@@ -1,69 +1,30 @@
-# Hệ thống Quản lý Ký túc xá (MVP)
+# Quản lý ký túc xá — MVP đơn giản
 
-Ứng dụng được tổ chức theo Modular Monolith và feature folders trong `docs/02-cau-truc-du-an.md`.
-Theo yêu cầu triển khai bằng Python, bốn lớp trong thiết kế được giữ nguyên về trách nhiệm nhưng dùng
-FastAPI + SQLAlchemy + Alembic thay cho ASP.NET Core + EF Core.
+Dự án backend FastAPI, PostgreSQL và Docker Compose. Thao tác qua Swagger tại http://localhost:8000/docs. Có đúng ba loại tài khoản: **Admin**, **Staff** và **Student**.
 
-## Công nghệ
+## Luồng chính
 
-- Backend: Python 3.12, FastAPI, SQLAlchemy 2, Alembic, PostgreSQL 16.
-- Xác thực: JWT, Argon2, ba vai trò cố định `Admin`, `Staff`, `Student`.
-- Frontend: React 19, TypeScript, Vite, Ant Design.
-- Test: pytest + FastAPI TestClient; frontend được kiểm tra bằng TypeScript/Vite build.
+1. Admin thêm tòa. Admin hoặc Staff thêm phòng, nhập sức chứa và giá ở tham khảo. Hệ thống tự tạo chỗ ở nội bộ và hai công tơ điện, nước cho phòng.
+2. Student xem phòng, gửi đăng ký chọn một phòng.
+3. Staff hoặc Admin duyệt/từ chối. Sau khi duyệt, cán bộ lập hợp đồng cho sinh viên ở **phòng đã chọn**; hệ thống tự kiểm tra còn chỗ.
+4. Staff hoặc Admin nhập chỉ số điện, nước theo phòng và kỳ; tiền điện nước được tính theo biểu giá.
+5. Staff hoặc Admin phát hành **một hóa đơn điện nước cho mỗi phòng trong mỗi kỳ**. Hóa đơn có hai dòng điện và nước, không nhân theo số người và không cộng tiền phòng. Sinh viên ở phòng trong kỳ đều xem được cùng hóa đơn.
+6. Khi phòng thanh toán đủ, Staff hoặc Admin xác nhận một lần, lưu phương thức, mã tham chiếu và thời điểm. MVP chưa kết nối cổng thanh toán và chưa quản lý phần đóng góp của từng cá nhân.
 
-## Cấu trúc
+Hợp đồng thuộc từng sinh viên và cố định một phòng. Không có sơ đồ phòng, lịch sử chuyển giường/phòng, chuyển phòng, AI, vi phạm hay biên lai trong luồng MVP. Cơ sở dữ liệu vẫn dùng vị trí ở nội bộ để kiểm soát sức chứa và giữ tương thích dữ liệu cũ; người dùng chỉ thao tác với phòng.
 
-```text
-src/
-├── backend/
-│   ├── Dormitory.Domain/dormitory_domain/                 # entity, enum, business rules
-│   ├── Dormitory.Application/dormitory_application/       # schema, interface, use case
-│   ├── Dormitory.Infrastructure/dormitory_infrastructure/ # SQLAlchemy, migration, auth, seed
-│   ├── Dormitory.Api/dormitory_api/                       # FastAPI router, middleware, authorization
-│   ├── alembic.ini
-│   └── pyproject.toml
-└── frontend/
-    ├── src/app, api, auth, components, layouts, features, routes
-    └── prototype-html/                                    # prototype gốc để tham chiếu
-
-tests/
-├── Dormitory.Domain.Tests/
-└── Dormitory.Api.IntegrationTests/
-```
-
-Các feature folders dành cho tuần sau vẫn được giữ đúng thiết kế: Contracts, Utilities, Billing,
-Violations, Reports và AI.
-
-## Chạy dự án
-
-### 1. Backend
+## Chạy
 
 ```bash
-cp .env.example .env
-python -m venv .venv
-# Windows PowerShell: .venv\Scripts\Activate.ps1
-
-pip install -e "src/backend[dev]"
-docker compose up -d postgres
-cd src/backend
-alembic upgrade head
-python -m dormitory_infrastructure.identity.seed_cli
-uvicorn dormitory_api.main:app --reload
+docker compose up -d --build
+docker compose ps
 ```
 
-API chạy tại `http://localhost:8000`; Swagger UI tại `http://localhost:8000/docs`.
+Gateway/API docs: http://localhost:8081/docs · API readiness: http://localhost:8081/readyz · Gateway health: http://localhost:8081/gateway/healthz · Adminer: http://localhost:8080.
 
-### 2. Frontend
+Gateway Nginx chuyển tiếp request đến API, giữ `Authorization` và `X-Request-ID`, nén phản hồi JSON, giới hạn request body 2 MB và áp dụng rate limit riêng cho đăng nhập/đăng ký. Các container API và gateway đều có healthcheck trong Docker Compose.
 
-```bash
-cd src/frontend
-npm install
-npm run dev
-```
-
-Frontend chạy tại `http://localhost:5173`.
-
-## Tài khoản demo tuần 1
+Tài khoản demo (chỉ dùng cho môi trường phát triển):
 
 | Vai trò | Email | Mật khẩu |
 |---|---|---|
@@ -71,66 +32,26 @@ Frontend chạy tại `http://localhost:5173`.
 | Staff | `staff@dormitory.local` | `Staff@123` |
 | Student | `student@dormitory.local` | `Student@123` |
 
-Chỉ dùng các mật khẩu này cho môi trường phát triển.
+Đăng nhập bằng `POST /api/v1/auth/login`, dùng access token dạng Bearer cho các API yêu cầu xác thực.
 
-## Phạm vi hoàn thành tuần 1–3
+## API theo trình tự demo
 
-- Docker Compose cho PostgreSQL và migration đầu tiên.
-- Seed ba role và một tài khoản demo cho mỗi role.
-- API đăng nhập, đăng xuất, xem người dùng hiện tại; JWT + role guard.
-- F01–F04: CRUD tòa nhà, loại phòng, phòng, giường.
-- F05: room matrix; trạng thái giường là dữ liệu suy ra, không nhận từ request.
-- Frontend login, layout Admin/Staff và Student, routing theo role.
-- Frontend quản lý cơ sở vật chất và xem room matrix.
-- Frontend tuần 1 có đủ thao tác thêm, sửa và xóa tòa nhà, loại phòng, phòng, giường.
-- Test tích hợp luồng demo cuối tuần 1.
-- F06–F07: Sinh viên gửi đăng ký; Staff/Admin lọc, duyệt hoặc từ chối kèm lý do.
-- F08: Phân giường và tạo hợp đồng trong một transaction; khóa giường và chặn
-  trùng khoảng thời gian bằng lỗi `BED_ASSIGNMENT_CONFLICT`.
-- F09: Sinh viên/Staff xem hợp đồng và toàn bộ lịch sử phân giường.
-- F10–F11: Chuyển giường giữ lịch sử; chấm dứt hợp đồng giải phóng giường.
-- Room matrix suy ra đủ `Available`, `Occupied`, `Maintenance` từ assignment thực tế.
-- Frontend có trang đăng ký, quản lý duyệt/phân giường, chuyển/chấm dứt hợp đồng và
-  trang “Chỗ ở của tôi”.
-- Integration test bao phủ luồng tuần 2 từ đăng ký đến chấm dứt.
-- F12: quản lý biểu giá điện/nước theo thời gian, đồng giá hoặc lũy tiến nhiều bậc.
-- F13: ghi chỉ số thủ công, chặn chỉ số hiện tại nhỏ hơn chỉ số trước và lưu snapshot biểu giá.
-- F14: tải mẫu Excel, xem trước từng dòng, báo lỗi và xác nhận nhập dữ liệu.
-- F15: bộ tính tiền điện/nước độc lập, có unit test cho biên bậc giá và làm tròn.
-- F16: sinh hóa đơn gồm tiền phòng, điện, nước; khóa idempotency ngăn tạo trùng cùng kỳ.
-- Frontend `/admin/utilities` cho phép cấu hình biểu giá/công tơ, nhập chỉ số và sinh hóa đơn.
-- API tuần 3 được công khai tại `/api/v1`; `/api` tiếp tục được giữ để tương thích.
+| Bước | Endpoint |
+|---|---|
+| Tòa, phòng | `GET/POST /api/v1/buildings`, `GET/POST /api/v1/rooms` |
+| Đăng ký | `POST/GET /api/v1/housing-applications` |
+| Duyệt | `POST /api/v1/housing-applications/{application_id}/approve` |
+| Hợp đồng | `POST /api/v1/contracts/{application_id}/assign-room`, `GET /api/v1/contracts/me` |
+| Điện nước | `GET /api/v1/meters`, `POST /api/v1/utility-tariffs`, `POST /api/v1/meter-readings` |
+| Hóa đơn phòng | `POST /api/v1/bills/generate`, `GET /api/v1/bills`, `GET /api/v1/bills/{bill_id}` |
+| Thanh toán | `POST /api/v1/bills/{bill_id}/confirm-payment` |
 
-## API chính tuần 3
+`POST /api/v1/bills/generate` nhận `room_id`, `period_start`, `period_end`, `issued_date`, `due_date` và `idempotency_key`. Phải có cả chỉ số điện và nước cho đúng kỳ trước khi phát hành. API chặn hóa đơn trùng phòng/kỳ.
 
-| Method | Endpoint | Chức năng |
-|---|---|---|
-| GET/POST | `/api/v1/utility-tariffs` | Danh sách và tạo biểu giá |
-| GET/POST | `/api/v1/meters` | Danh sách và gắn công tơ vào phòng |
-| GET/POST | `/api/v1/meter-readings` | Xem và ghi chỉ số thủ công |
-| GET | `/api/v1/meter-readings/template` | Tải mẫu Excel |
-| POST | `/api/v1/meter-readings/import/preview` | Kiểm tra và xem trước Excel |
-| POST | `/api/v1/meter-readings/import/{batchId}/confirm` | Xác nhận nhập Excel |
-| GET | `/api/v1/bills` | Danh sách hóa đơn |
-| POST | `/api/v1/bills/generate` | Sinh hóa đơn chống trùng |
+## Kỹ thuật và kiểm thử
 
-## API chính tuần 2
+Mã backend ở `src/backend/dormitory_*`. Alembic quản lý migration; repository gọi PostgreSQL stored functions. Chạy `alembic upgrade head` và `python -m dormitory_infrastructure.identity.seed_cli` khi chạy ngoài Compose.
 
-| Method | Endpoint | Vai trò |
-|---|---|---|
-| POST | `/api/housing-applications` | Student |
-| GET | `/api/housing-applications?status=` | Student xem của mình; Admin/Staff xem toàn bộ |
-| POST | `/api/housing-applications/{id}/approve` | Admin/Staff |
-| POST | `/api/housing-applications/{id}/reject` | Admin/Staff |
-| POST | `/api/contracts/{applicationId}/assign-bed` | Admin/Staff |
-| GET | `/api/contracts`, `/api/contracts/me` | Theo quyền sở hữu |
-| GET | `/api/contracts/{id}/assignment-history` | Theo quyền sở hữu |
-| POST | `/api/contracts/{id}/transfer` | Admin/Staff |
-| POST | `/api/contracts/{id}/terminate` | Admin/Staff |
+Smoke test luồng hai sinh viên chung một hóa đơn dùng database thử riêng: `scripts/smoke_simple_flow.py`. Import `postman/Dormitory_MasterPlan_8Tuan.postman_collection.json` để mở collection **Dormitory MVP - Master Plan 8 tuần**. Có đủ Tuần 1–8; mỗi request tự lấy token, tạo dữ liệu phụ thuộc và có thể bấm Send độc lập. Hướng dẫn: [postman/README.md](postman/README.md).
 
-## Kiểm tra
-
-```bash
-cd src/backend && pytest
-cd src/frontend && npm run build
-```
+Các ví dụ request/response và mã lỗi chính nằm trong `docs/API_MVP.md`.

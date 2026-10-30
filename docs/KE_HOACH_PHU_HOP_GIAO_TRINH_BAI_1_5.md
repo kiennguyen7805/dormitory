@@ -4,11 +4,11 @@ Ngày rà soát: 27/09/2026
 
 ## 1. Mục tiêu
 
-- Giữ kiến trúc Python 3.12, FastAPI, SQLAlchemy và PostgreSQL.
+- Giữ kiến trúc Python 3.12, FastAPI và PostgreSQL; dùng SQLAlchemy Core để thực thi SQL, không dùng ORM.
 - Ánh xạ đầy đủ các khái niệm trong giáo trình ASP.NET Core sang công nghệ tương đương.
-- Dùng Swagger tại `/docs` làm giao diện chạy và kiểm thử API, không phụ thuộc frontend.
-- Giữ tương thích `/api/...` cho frontend cũ, đồng thời công khai hợp đồng mới tại `/api/v1/...`.
-- Giữ nguyên 33 bảng nghiệp vụ; trạng thái refresh token được bổ sung vào bảng `users`.
+- Dùng Swagger tại `/docs` làm giao diện chạy và kiểm thử API.
+- Giữ tương thích `/api/...`, đồng thời công khai hợp đồng mới tại `/api/v1/...`.
+- Phạm vi hiện hành là 17 bảng; ba role cố định, không import Excel.
 
 ## 2. P0 — Bắt buộc để bám Bài 1–Bài 5
 
@@ -19,7 +19,7 @@ Trạng thái: **Đã hoàn thành**.
 - API chính: `/api/v1`.
 - `/api` cũ vẫn hoạt động nhưng bị ẩn khỏi OpenAPI.
 - Swagger mô tả phiên bản `1.0.0`.
-- Postman Local sử dụng `http://localhost:8000/api/v1`.
+- Kiểm thử thủ công trên Postman với URL gốc `http://localhost:8000/api/v1`.
 
 Tiêu chí nghiệm thu:
 
@@ -61,7 +61,6 @@ Endpoint:
 POST /api/v1/auth/register
 POST /api/v1/auth/login
 POST /api/v1/auth/refresh
-POST /api/v1/auth/logout
 GET  /api/v1/auth/me
 ```
 
@@ -71,7 +70,6 @@ Quy tắc:
 - Refresh Token mặc định sống 7 ngày.
 - Chỉ lưu SHA-256 hash của Refresh Token trong database.
 - Mỗi lần refresh sẽ rotation token; token cũ không dùng lại được.
-- Logout thu hồi và xóa Refresh Token hiện hành.
 - JWT có `sub`, `email`, `role`, `jti`, `iss`, `aud`, `iat`, `exp`.
 
 Migration: `20260927_0010_refresh_tokens.py`.
@@ -94,7 +92,7 @@ API v1 trả `application/problem+json` với các trường:
 }
 ```
 
-Đã bao phủ validation, HTTP exception, lỗi nghiệp vụ và lỗi 500 không xác định. API `/api` cũ giữ response lỗi cũ để không phá frontend.
+Đã bao phủ validation, HTTP exception, lỗi nghiệp vụ và lỗi 500 không xác định. API `/api` cũ giữ response lỗi cũ để bảo đảm tương thích ngược.
 
 ## 3. P1 — Cần làm tiếp để hoàn thành Bài 1 và Bài 5
 
@@ -163,7 +161,7 @@ Repository gọi function bằng tham số hóa. Không cần chuyển toàn b�
 ### P2.3. Hoàn thiện các module nghiệp vụ
 
 - Utilities: **Đã hoàn thành phạm vi tuần 3** gồm catalog điện/nước, công tơ,
-  biểu giá theo thời gian, bậc giá, ghi chỉ số thủ công và nhập Excel hai bước.
+  biểu giá theo thời gian, bậc giá và ghi chỉ số thủ công. Không có import Excel.
 - Billing: **Đã hoàn thành phạm vi tuần 3** gồm bộ tính tiền độc lập, snapshot biểu giá,
   hóa đơn tiền phòng + điện + nước và idempotency. Payments tiếp tục ở tuần sau.
 - Violations.
@@ -186,7 +184,6 @@ Kết quả cần duy trì sau khi bổ sung tuần 3:
 
 ```text
 pytest: toàn bộ test pass; có unit test BillingCalculator và integration test luồng tuần 3
-frontend: `npm run build` thành công
 ```
 
 Chạy hệ thống sau khi Docker Desktop đã hoạt động:
@@ -208,9 +205,9 @@ docker compose exec api alembic upgrade head
 - [x] REST endpoint, JSON, status code và Swagger.
 - [x] Dependency Injection và Repository Pattern.
 - [x] Validation DTO và Student API có phân trang.
-- [x] Postman environment và test script.
-- [x] ORM parameter hóa và transaction commit/rollback.
-- [x] JWT, role/permission, register, refresh và logout.
+- [x] Có thể nhập request thủ công trong Postman hoặc dùng Swagger UI.
+- [x] SQL có tham số và transaction commit/rollback, không dùng ORM.
+- [x] JWT, role/permission, register và refresh.
 - [x] CORS.
 - [x] Global error contract theo RFC 7807 cho API v1.
 - [x] API versioning `/api/v1`.

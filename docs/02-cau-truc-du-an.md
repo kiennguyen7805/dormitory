@@ -1,6 +1,11 @@
-# CẤU TRÚC DỰ ÁN — HỆ THỐNG QUẢN LÝ KÝ TÚC XÁ (MVP 5 TUẦN)
+# CẤU TRÚC DỰ ÁN — HỆ THỐNG QUẢN LÝ KÝ TÚC XÁ
 
-> Đi kèm file `01-phan-tich-bai-toan-mvp.md` (chức năng, lộ trình, màu sắc/UI). File này tập trung vào **kỹ thuật**: tech stack, kiến trúc, cấu trúc thư mục, database, API, môi trường chạy — đã **rút gọn** so với bản phân tích gốc để vừa sức làm trong 5 tuần.
+> Tài liệu kỹ thuật này có một số phần mô tả phạm vi cũ. Phạm vi và lịch 8 tuần
+> hiện hành nằm trong `Master_Plan_MVP_8Tuan.xlsx` và `docs/05-ke-hoach-backend-only.md`.
+
+> Đi kèm file `01-phan-tich-bai-toan-mvp.md` (chức năng và lộ trình). File này tập trung vào **kỹ thuật**: tech stack, kiến trúc, cấu trúc thư mục, database, API, môi trường chạy — đã **rút gọn** so với bản phân tích gốc để vừa sức làm trong 5 tuần.
+>
+> Phạm vi hiện hành chỉ có backend API. Không có frontend và không có import Excel.
 
 ---
 
@@ -10,12 +15,9 @@
 |---|---|---|
 | Backend | Python 3.12 + FastAPI | Type hints, OpenAPI tự động, phù hợp triển khai API nhanh |
 | Database | PostgreSQL | Transaction mạnh, constraint tốt, JSONB cho snapshot tính tiền |
-| ORM | SQLAlchemy 2 + Alembic + psycopg | ORM, migration và PostgreSQL driver theo hệ sinh thái Python |
+| Truy cập dữ liệu | SQL có tham số + SQLAlchemy Core + psycopg; Alembic migration | Không dùng ORM; nghiệp vụ chính gọi PostgreSQL function |
 | Auth | JWT + pwdlib (Argon2) | Hash mật khẩu an toàn, phân quyền 3 role cố định |
-| Frontend | React + TypeScript + Vite | Hệ sinh thái mạnh, tách rõ FE/BE, dễ demo |
-| UI Component | Ant Design (1 thư viện duy nhất) | Đủ Form/Table/Modal/DatePicker cho CRUD + dashboard |
-| Chart | Recharts (hoặc ECharts) | Nhẹ, đủ cho biểu đồ lấp đầy/doanh thu |
-| Excel | openpyxl | Đọc/ghi `.xlsx` cho template chỉ số điện nước |
+| Chỉ số điện nước | Nhập thủ công qua API | Không có import Excel trong phạm vi 17 bảng |
 | AI | `ILlmClient` → OpenAI API (hoặc provider tương đương) | Interface trừu tượng, dễ đổi provider sau này |
 | Test | pytest + FastAPI TestClient | Unit test business rule + integration test luồng chính |
 | Hạ tầng dev | Docker Compose (PostgreSQL) | Chạy local nhanh, đồng nhất giữa các máy trong nhóm |
@@ -28,12 +30,11 @@
 
 ```mermaid
 flowchart TB
-    Browser[React + TypeScript + AntD] -->|HTTPS/JSON| API[Python + FastAPI]
+    Client[Swagger UI / Postman / API Client] -->|HTTP/JSON| API[Python + FastAPI]
     API --> APP[Application Layer / Use Cases]
     APP --> DOMAIN[Domain Model + Business Rules]
     APP --> INFRA[Infrastructure]
     INFRA --> PG[(PostgreSQL)]
-    INFRA --> XLSX[openpyxl]
     INFRA --> LLM[LLM Provider API]
     API --> AUTH[JWT + Argon2 + role guard]
 ```
@@ -55,10 +56,10 @@ dormitory-management/
 ├── Master_Plan_MVP_8Tuan.xlsx
 │
 ├── src/
-│   ├── backend/
+│   └── backend/
 │   │   ├── pyproject.toml
 │   │   ├── alembic.ini
-│   │   ├── Dormitory.Domain/dormitory_domain/
+│   │   ├── dormitory_domain/
 │   │   │   ├── housing/entities.py       # Building, Room, Bed, RoomType
 │   │   │   ├── contracts/                # Application, Contract, BedAssignment
 │   │   │   ├── utilities/                # Utility, Meter, MeterReading, Tariff, TariffTier
@@ -66,54 +67,32 @@ dormitory-management/
 │   │   │   ├── violations/               # ViolationType, Violation
 │   │   │   └── common/enums.py           # enum dùng chung
 │   │   │
-│   │   ├── Dormitory.Application/dormitory_application/
+│   │   ├── dormitory_application/
 │   │   │   ├── identity/schemas.py
 │   │   │   ├── housing/          # schemas, interfaces, service
 │   │   │   ├── contracts/        # application workflows tuần 2
-│   │   │   ├── utilities/        # readings, Excel import, tariffs
+│   │   │   ├── utilities/        # công tơ, biểu giá, chỉ số thủ công
 │   │   │   ├── billing/          # generate bill, payment, receipt
 │   │   │   ├── violations/
 │   │   │   ├── reports/          # OccupancyReport, RevenueReport
 │   │   │   ├── ai/               # DraftPaymentReminder, SummarizeViolations
 │   │   │   └── common/errors.py
 │   │   │
-│   │   ├── Dormitory.Infrastructure/dormitory_infrastructure/
+│   │   ├── dormitory_infrastructure/
 │   │   │   ├── persistence/      # database, models, repositories, migrations
 │   │   │   ├── identity/         # JWT, Argon2, seed 3 role
-│   │   │   ├── excel/            # openpyxl template + import
 │   │   │   └── ai/               # OpenAI client
 │   │   │
-│   │   └── Dormitory.Api/dormitory_api/
+│   │   └── dormitory_api/
 │   │       ├── controllers/      # auth, housing
 │   │       ├── middleware/       # exception handling -> errorCode
 │   │       ├── authorization/    # dependency kiểm tra role
 │   │       ├── dependencies.py
 │   │       └── main.py
-│   │
-│   └── frontend/
-│       ├── src/
-│       │   ├── app/               # ConfigProvider theme, router root
-│       │   ├── api/                # gọi API, DTO type
-│       │   ├── auth/                # login, guard theo role
-│       │   ├── components/          # component dùng chung (Badge trạng thái...)
-│       │   ├── layouts/             # AdminLayout, StudentLayout
-│       │   ├── features/
-│       │   │   ├── housing/         # building/room/bed, room matrix
-│       │   │   ├── applications/    # đăng ký, duyệt, phân giường
-│       │   │   ├── contracts/       # chi tiết hợp đồng, chuyển phòng
-│       │   │   ├── utilities/       # chỉ số, import excel, tariff
-│       │   │   ├── billing/         # hoá đơn, thanh toán, biên lai
-│       │   │   ├── violations/
-│       │   │   ├── dashboard/
-│       │   │   └── ai/              # nút "soạn nhắc nợ", "tóm tắt AI"
-│       │   ├── routes/
-│       │   └── main.tsx
-│       ├── package.json
-│       └── vite.config.ts
 │
 ├── tests/
-│   ├── Dormitory.Domain.Tests/         # pytest business rules
-│   └── Dormitory.Api.IntegrationTests/ # pytest luồng API chính
+│   ├── unit/        # pytest business rules
+│   └── integration/ # pytest luồng API chính
 │
 ├── scripts/
 │   ├── dev-up.sh
@@ -123,7 +102,7 @@ dormitory-management/
 └── .github/workflows/ci.yml   # build + test, không cần pipeline phức tạp
 ```
 
-> Lý do giữ **feature folders** trong Application/Frontend: khi sửa module Utilities không phải lục khắp project; đúng với cách chia chức năng ở file phân tích (Mục 3).
+> Lý do giữ **feature folders** trong Application: khi sửa module Utilities không phải lục khắp project; đúng với cách chia chức năng ở file phân tích (Mục 3).
 
 ---
 
@@ -134,19 +113,18 @@ dormitory-management/
 
 ### 4.2. Nhóm Housing Inventory
 - `buildings` (code*, name, address, floors, status)
-- `room_types` (name, default_monthly_rate)
-- `rooms` (building_id, code, room_type_id, status) — unique `(building_id, code)`
+- `rooms` (building_id, code, capacity, monthly_rate, status) — unique `(building_id, code)`
 - `beds` (room_id, code, status) — unique `(room_id, code)`
 
 ### 4.3. Nhóm Applications / Contracts
-- `housing_applications` (student_id, term_code, preferred_room_type_id, status, rejection_reason)
+- `housing_applications` (student_id, term_code, requested_room_id, status, rejection_reason)
 - `contracts` (contract_no*, student_id, start_date, end_date, status, base_rate, terminated_at)
-- `bed_assignments` (contract_id, bed_id, start_date, end_date, status) — **bảng quan trọng nhất** để xử lý chuyển phòng & lịch sử lấp đầy
+- `bed_assignments` (contract_id, bed_id, start_date, end_date, status) — lưu giường đang được phân cho hợp đồng
 
 ### 4.4. Nhóm Utilities
 - `utilities` (code: ELECTRICITY/WATER, unit)
 - `meters` (room_id, utility_id, meter_code*)
-- `meter_readings` (meter_id, period_start, period_end, previous_reading, current_reading, consumption, source: Manual/ExcelImport) — unique `(meter_id, period_start, period_end)`, constraint `current_reading >= previous_reading`
+- `meter_readings` (meter_id, period_start, period_end, previous_reading, current_reading, consumption) — unique `(meter_id, period_start, period_end)`, constraint `current_reading >= previous_reading`
 - `utility_tariffs` (utility_id, effective_from, effective_to, pricing_mode)
 - `tariff_tiers` (tariff_id, tier_order, from_quantity, to_quantity, unit_price)
 
@@ -160,12 +138,9 @@ dormitory-management/
 - `violation_types` (code, name, default_severity, default_fine_amount)
 - `violations` (student_id, contract_id, violation_type_id, occurred_at, severity, status, fine_amount)
 
-### 4.7. Nhóm Import (tối giản)
-- `import_batches` (type: MeterReading, file_name, status, uploaded_by, uploaded_at) — không cần thống kê chi tiết valid/invalid rows nếu thiếu thời gian, chỉ cần biết batch nào đã confirm.
-
 *(dấu `*` = cột cần ràng buộc `unique`)*
 
-### 4.8. Constraint bắt buộc kiểm tra kỹ trước khi nộp
+### 4.7. Constraint bắt buộc kiểm tra kỹ trước khi nộp
 
 ```text
 [ ] buildings.code unique
@@ -188,7 +163,6 @@ dormitory-management/
 ```http
 # Auth
 POST   /api/auth/login
-POST   /api/auth/logout
 
 # Housing inventory
 GET    /api/buildings
@@ -197,7 +171,6 @@ GET    /api/rooms?buildingId=
 POST   /api/rooms
 GET    /api/beds?roomId=
 POST   /api/beds
-GET    /api/room-matrix                     # dữ liệu cho sơ đồ trạng thái giường
 
 # Applications / Contracts
 POST   /api/housing-applications            # sinh viên tạo
@@ -205,17 +178,12 @@ GET    /api/housing-applications?status=
 POST   /api/housing-applications/{id}/approve
 POST   /api/housing-applications/{id}/reject
 POST   /api/contracts/{applicationId}/assign-bed
-POST   /api/contracts/{id}/transfer         # chuyển phòng
 POST   /api/contracts/{id}/terminate
-GET    /api/contracts/{id}/assignment-history
 
 # Utilities
 GET    /api/utility-tariffs
 POST   /api/utility-tariffs
 POST   /api/meter-readings                  # nhập tay
-GET    /api/meter-readings/template         # tải file excel mẫu
-POST   /api/meter-readings/import/preview   # upload -> validate, chưa lưu
-POST   /api/meter-readings/import/confirm   # lưu chính thức
 
 # Billing
 POST   /api/bills/generate                  # phát hành hoá đơn theo kỳ
@@ -239,7 +207,7 @@ POST   /api/ai/draft-payment-reminder
 POST   /api/ai/summarize-violations/{studentId}
 ```
 
-### Quy ước response lỗi (frontend xử lý theo `errorCode`, không parse message)
+### Quy ước response lỗi (API client xử lý theo `errorCode`, không parse message)
 
 ```http
 409 Conflict
@@ -264,7 +232,7 @@ ConnectionStrings__Default=Host=localhost;Database=dormitory;Username=dormitory;
 
 Llm__Provider=OpenAI
 Llm__Model=<model-name>
-OPENAI_API_KEY=<secret>   # chỉ nằm ở backend, không đưa sang React
+OPENAI_API_KEY=<secret>   # chỉ cấu hình ở backend, không commit vào source
 ```
 
 ### `docker-compose.yml` (rút gọn)
@@ -282,7 +250,7 @@ volumes:
   pgdata:
 ```
 
-Chạy local: `docker compose up -d` → `alembic upgrade head` → `uvicorn dormitory_api.main:app` → `npm run dev`.
+Chạy local: `docker compose up -d` → `alembic upgrade head` → `uvicorn dormitory_api.main:app`.
 
 ---
 
@@ -290,8 +258,7 @@ Chạy local: `docker compose up -d` → `alembic upgrade head` → `uvicorn dor
 
 - **Python backend**: PascalCase cho class, snake_case cho hàm/biến/module, tên bảng số nhiều snake_case ở PostgreSQL (`bed_assignments`), cột snake_case.
 - **API route**: kebab-case, số nhiều cho collection (`/housing-applications`).
-- **React**: PascalCase cho component (`RoomMatrix.tsx`), camelCase cho hook/function, tên file feature theo domain (`features/billing/BillDetail.tsx`).
-- **Enum trạng thái**: PascalCase tiếng Anh trong code (`Approved`, `PartiallyPaid`) — hiển thị tiếng Việt ở tầng UI qua bảng mapping, không hard-code chuỗi tiếng Việt trong logic.
+- **Enum trạng thái**: PascalCase tiếng Anh trong code (`Approved`, `PartiallyPaid`), không hard-code chuỗi hiển thị trong logic nghiệp vụ.
 
 ---
 
@@ -302,7 +269,6 @@ Chạy local: `docker compose up -d` → `alembic upgrade head` → `uvicorn dor
 | Unit test `BillingCalculator` (tính bậc giá) | **Bắt buộc** | Đây là logic dễ sai nhất và bị chấm kỹ nhất |
 | Integration test luồng đăng ký → hợp đồng → hoá đơn | **Bắt buộc** | 1 test end-to-end là đủ, không cần bao phủ mọi nhánh |
 | Unit test chống double-booking giường | **Bắt buộc** | Test 2 assignment chồng thời gian phải bị chặn |
-| Test frontend (component/e2e) | Tuỳ chọn | Chỉ làm nếu còn thời gian ở tuần 5 |
 
 ---
 
