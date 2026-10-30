@@ -1,0 +1,3624 @@
+{
+  "info": {
+    "_postman_id": "e6e71173-5a66-4dca-8a87-80481c156200",
+    "name": "Dormitory MVP - Master Plan 8 tuần",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Đủ 8 tuần, 32 công việc từ sheet Plan. Chọn No Environment, mở bất kỳ request → Send. Tự lấy token, tạo dữ liệu phụ thuộc riêng mỗi lần. Có thể Run toàn collection, gồm ca lỗi dự kiến 4xx. Cần Docker/gateway và tài khoản demo đã seed. Mỗi Send có thể thêm dữ liệu demo. Tuần 7/8 kiểm tra HTTP phục vụ tài liệu/Docker, không build hoặc chỉnh tài liệu qua HTTP. Checklist Excel còn logout nhưng backend đã bỏ endpoint này. Người xác nhận thanh toán lưu nội bộ, BillRead chưa công khai trường này."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081",
+      "type": "string"
+    },
+    {
+      "key": "adminEmail",
+      "value": "admin@dormitory.local",
+      "type": "string"
+    },
+    {
+      "key": "adminPassword",
+      "value": "Admin@123",
+      "type": "string"
+    },
+    {
+      "key": "staffEmail",
+      "value": "staff@dormitory.local",
+      "type": "string"
+    },
+    {
+      "key": "staffPassword",
+      "value": "Staff@123",
+      "type": "string"
+    },
+    {
+      "key": "studentPassword",
+      "value": "Student@123",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "(async () => {",
+          "const scenarios = {",
+          "  \"01.01 - API đang sống\": {",
+          "    \"role\": null,",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"01.02 - PostgreSQL và migration sẵn sàng\": {",
+          "    \"role\": null,",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"02.01 - Sinh viên đăng ký tài khoản\": {",
+          "    \"role\": null,",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"02.02 - Đăng nhập admin\": {",
+          "    \"role\": null,",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"02.03 - Xem phiên admin\": {",
+          "    \"role\": \"admin\",",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"02.04 - Đăng nhập staff\": {",
+          "    \"role\": null,",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"02.05 - Xem phiên staff\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"02.06 - Đăng nhập student\": {",
+          "    \"role\": null,",
+          "    \"setup\": \"student\"",
+          "  },",
+          "  \"02.07 - Xem phiên student\": {",
+          "    \"role\": \"student\",",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"02.08 - Làm mới token\": {",
+          "    \"role\": null,",
+          "    \"setup\": \"refresh\"",
+          "  },",
+          "  \"02.09 - Admin xem người dùng\": {",
+          "    \"role\": \"admin\",",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"02.10 - Admin tạo tài khoản Staff\": {",
+          "    \"role\": \"admin\",",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"02.11 - Admin cập nhật tài khoản mẫu\": {",
+          "    \"role\": \"admin\",",
+          "    \"setup\": \"managed-user\"",
+          "  },",
+          "  \"02.12 - Sinh viên xem hồ sơ\": {",
+          "    \"role\": \"student\",",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"02.13 - Sinh viên cập nhật hồ sơ\": {",
+          "    \"role\": \"student\",",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"02.14 - Staff xem sinh viên có phân trang\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"03.01 - Admin thêm tòa\": {",
+          "    \"role\": \"admin\",",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"03.02 - Staff thêm phòng\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"building\"",
+          "  },",
+          "  \"04.01 - Sinh viên xem tòa\": {",
+          "    \"role\": \"student\",",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"04.02 - Sinh viên xem phòng theo tòa\": {",
+          "    \"role\": \"student\",",
+          "    \"setup\": \"room\"",
+          "  },",
+          "  \"04.03 - Phòng tự sinh hai công tơ\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"room\"",
+          "  },",
+          "  \"05.01 - Sinh viên gửi đăng ký chọn phòng\": {",
+          "    \"role\": \"student\",",
+          "    \"setup\": \"room\"",
+          "  },",
+          "  \"05.02 - Sinh viên theo dõi đơn\": {",
+          "    \"role\": \"student\",",
+          "    \"setup\": \"application\"",
+          "  },",
+          "  \"06.01 - Staff duyệt đơn\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"application\"",
+          "  },",
+          "  \"06.02 - Staff từ chối có lý do\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"application\"",
+          "  },",
+          "  \"07.01 - Lập hợp đồng gắn phòng đăng ký\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"approved\"",
+          "  },",
+          "  \"08.01 - Sinh viên xem hợp đồng\": {",
+          "    \"role\": \"student\",",
+          "    \"setup\": \"contract\"",
+          "  },",
+          "  \"08.02 - Staff xem hợp đồng\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"contract\"",
+          "  },",
+          "  \"08.03 - Staff chấm dứt hợp đồng mẫu\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"contract\"",
+          "  },",
+          "  \"09.01 - Danh sách hai tiện ích\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"09.02 - Danh sách công tơ phòng\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"room\"",
+          "  },",
+          "  \"10.01 - Thiết lập biểu giá điện\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"tariff-slot\",",
+          "    \"kind\": \"electricity\"",
+          "  },",
+          "  \"10.02 - Nhập chỉ số điện\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"meters\"",
+          "  },",
+          "  \"10.03 - Thiết lập biểu giá nước\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"tariff-slot\",",
+          "    \"kind\": \"water\"",
+          "  },",
+          "  \"10.04 - Nhập chỉ số nước\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"meters\"",
+          "  },",
+          "  \"11.01 - [400] Chặn chỉ số giảm\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"meters\"",
+          "  },",
+          "  \"11.02 - [409] Chặn chỉ số trùng kỳ\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"electricity-reading\"",
+          "  },",
+          "  \"12.01 - Kiểm tra tiền và snapshot giá\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"readings\"",
+          "  },",
+          "  \"13.01 - [422] Không phát hành khi thiếu chỉ số nước\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"electricity-reading\"",
+          "  },",
+          "  \"14.01 - Phát hành hóa đơn phòng-kỳ\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"readings\"",
+          "  },",
+          "  \"15.01 - Sinh viên thứ nhất xem hóa đơn\": {",
+          "    \"role\": \"student\",",
+          "    \"setup\": \"bill\"",
+          "  },",
+          "  \"15.02 - Sinh viên thứ hai xem cùng hóa đơn\": {",
+          "    \"role\": \"student2\",",
+          "    \"setup\": \"shared-bill\"",
+          "  },",
+          "  \"16.01 - Gửi lại cùng key trả cùng hóa đơn\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"bill\"",
+          "  },",
+          "  \"16.02 - [409] Cùng phòng-kỳ, key mới\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"bill\"",
+          "  },",
+          "  \"16.03 - [409] Cùng key, dữ liệu khác\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"bill\"",
+          "  },",
+          "  \"17.01 - Staff xác nhận trả đủ\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"bill\"",
+          "  },",
+          "  \"18.01 - Xem thông tin xác nhận thanh toán\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"paid\"",
+          "  },",
+          "  \"19.01 - [409] Chặn xác nhận lần hai\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"paid\"",
+          "  },",
+          "  \"19.02 - Sinh viên xem đã trả\": {",
+          "    \"role\": \"student\",",
+          "    \"setup\": \"paid\"",
+          "  },",
+          "  \"20.01 - Đối chiếu tổng tiền và hai dòng điện nước\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"bill\"",
+          "  },",
+          "  \"21.01 - Hai sinh viên cùng phòng, một hóa đơn chung\": {",
+          "    \"role\": \"student2\",",
+          "    \"setup\": \"shared-bill\"",
+          "  },",
+          "  \"22.01 - [409] Phòng đủ hai chỗ không nhận người thứ ba\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"full-room\"",
+          "  },",
+          "  \"22.02 - [409] Đơn chưa duyệt không lập hợp đồng\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"application\"",
+          "  },",
+          "  \"22.03 - [409] Không lập trùng hợp đồng\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"contract\"",
+          "  },",
+          "  \"23.01 - Admin được xem người dùng\": {",
+          "    \"role\": \"admin\",",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"23.02 - Staff được xem công tơ\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"23.03 - [403] Staff không được thêm tòa\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"23.04 - [403] Student không được thêm tòa\": {",
+          "    \"role\": \"student\",",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"23.05 - [403] Student không được phát hành hóa đơn\": {",
+          "    \"role\": \"student\",",
+          "    \"setup\": \"room\"",
+          "  },",
+          "  \"23.06 - [403] Student không được xem hóa đơn phòng khác\": {",
+          "    \"role\": \"outsider\",",
+          "    \"setup\": \"bill\"",
+          "  },",
+          "  \"23.07 - [401] Không có token\": {",
+          "    \"role\": null,",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"24.01 - [400] Chỉ số giảm\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"meters\"",
+          "  },",
+          "  \"24.02 - [409] Chỉ số trùng\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"electricity-reading\"",
+          "  },",
+          "  \"24.03 - [422] Thiếu chỉ số\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"electricity-reading\"",
+          "  },",
+          "  \"24.04 - [409] Thanh toán lặp\": {",
+          "    \"role\": \"staff\",",
+          "    \"setup\": \"paid\"",
+          "  },",
+          "  \"25.01 - OpenAPI đúng phạm vi MVP\": {",
+          "    \"role\": null,",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"25.02 - Trang Swagger\": {",
+          "    \"role\": null,",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"26.01 - Luồng đăng ký đến trả đủ bằng một Send\": {",
+          "    \"role\": \"student\",",
+          "    \"setup\": \"paid\"",
+          "  },",
+          "  \"27.01 - Ví dụ lỗi đăng nhập và Problem JSON\": {",
+          "    \"role\": null,",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"28.01 - Rà endpoint và ba vai trò\": {",
+          "    \"role\": \"admin\",",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"29.01 - Gateway Docker đang sống\": {",
+          "    \"role\": null,",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"30.01 - API và PostgreSQL sẵn sàng\": {",
+          "    \"role\": null,",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"30.02 - Swagger môi trường demo\": {",
+          "    \"role\": null,",
+          "    \"setup\": \"none\"",
+          "  },",
+          "  \"31.01 - Kiểm thử đầu cuối trên dữ liệu demo mới\": {",
+          "    \"role\": \"student\",",
+          "    \"setup\": \"paid\"",
+          "  },",
+          "  \"32.01 - Demo trọn luồng và hai sinh viên xem đã trả\": {",
+          "    \"role\": \"student2\",",
+          "    \"setup\": \"shared-paid\"",
+          "  }",
+          "};",
+          "// Shared setup: every Send creates a fresh, independent scenario.",
+          "const spec = scenarios[pm.info.requestName];",
+          "if (!spec) throw new Error('Missing scenario: '+pm.info.requestName);",
+          "const cv=pm.collectionVariables, v=pm.variables;",
+          "const set=(k,x)=>{cv.set(k,x);v.set(k,x);return x;};",
+          "['baseUrl','adminEmail','adminPassword','staffEmail','staffPassword','studentPassword'].forEach(k=>v.set(k,cv.get(k)));",
+          "const base=String(v.get('baseUrl')).replace(/\\/+$/,'');",
+          "v.set('baseUrl',base);",
+          "const uid=()=>v.replaceIn('{{$randomUUID}}').replace(/-/g,'');",
+          "const tag=uid().slice(0,16);",
+          "const day=n=>{const d=new Date();d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);};",
+          "set('runTag',tag);set('today',day(0));set('contractEnd',day(90));set('dueDate',day(15));",
+          "set('buildingCode','P'+tag);set('termCode','PM-'+tag);set('billKey','pm-'+tag);",
+          "set('studentEmail','pm.'+tag+'@example.com');set('studentCode',uid().slice(0,8).toUpperCase());",
+          "const tokens={};",
+          "const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));",
+          "async function call(method,path,role,body,expected=200){",
+          "  const header={'Content-Type':'application/json'};",
+          "  if(role) header.Authorization='Bearer '+tokens[role];",
+          "  const request={url:base+'/api/v1'+path,method,header};",
+          "  if(body!==undefined) request.body={mode:'raw',raw:JSON.stringify(body)};",
+          "  let r;",
+          "  for(let i=0;i<3;i++){r=await new Promise((resolve,reject)=>pm.sendRequest(request,(err,response)=>err?reject(err):resolve(response)));if(r.code!==429)break;await sleep(1200);}",
+          "  if(r.code!==expected)throw new Error('Setup '+method+' '+path+': expected '+expected+', received '+r.code+': '+r.text());",
+          "  console.log('Setup:',method,path,r.code);",
+          "  return r.json();",
+          "}",
+          "async function login(role){",
+          "  if(tokens[role])return;",
+          "  const email=v.get(role+'Email'),password=v.get(role+'Password')||v.get('studentPassword');",
+          "  const key='_auth_'+role,signature=base+'|'+email+'|'+password;",
+          "  let cache;try{cache=JSON.parse(cv.get(key)||'null');}catch(_){}",
+          "  if(['admin','staff'].includes(role)&&cache&&cache.signature===signature&&cache.expires>Date.now()+30000){",
+          "    tokens[role]=cache.token;return;",
+          "  }",
+          "  const b=await call('POST','/auth/login',null,{email,password});",
+          "  tokens[role]=b.access_token;set(role+'Token',b.access_token);set(role+'RefreshToken',b.refresh_token);",
+          "  if(['admin','staff'].includes(role))cv.set(key,JSON.stringify({signature,token:b.access_token,expires:Date.now()+Number(b.expires_in)*1000}));",
+          "}",
+          "async function student(role='student'){",
+          "  if(tokens[role])return;",
+          "  if(role!=='student'){set(role+'Email','pm.'+role+'.'+uid().slice(0,16)+'@example.com');set(role+'Code',uid().slice(0,8).toUpperCase());}",
+          "  const b=await call('POST','/auth/register',null,{email:v.get(role+'Email'),password:v.get('studentPassword'),full_name:'Postman '+role+' '+tag,student_code:v.get(role==='student'?'studentCode':role+'Code'),age:20},201);",
+          "  set(role+'Id',b.id);await login(role);",
+          "}",
+          "let buildingReady=false,roomReady=false,metersReady=false;",
+          "async function building(){",
+          "  if(buildingReady)return;",
+          "  await login('admin');",
+          "  const b=await call('POST','/buildings','admin',{code:v.get('buildingCode'),name:'Postman '+tag,address:'Demo',floors:2},201);",
+          "  set('buildingId',b.id);buildingReady=true;",
+          "}",
+          "async function room(){",
+          "  if(roomReady)return;",
+          "  await building();await login('staff');",
+          "  const b=await call('POST','/rooms','staff',{building_id:v.get('buildingId'),code:'101',floor:1,capacity:2,monthly_rate:500000},201);",
+          "  set('roomId',b.id);roomReady=true;",
+          "}",
+          "async function application(role='student',approve=false,assign=false){",
+          "  await room();await student(role);",
+          "  const a=await call('POST','/housing-applications',role,{term_code:v.get('termCode'),room_id:v.get('roomId')},201);",
+          "  set('applicationId',a.id);",
+          "  if(approve||assign)await call('POST','/housing-applications/'+a.id+'/approve','staff');",
+          "  if(assign){const c=await call('POST','/contracts/'+a.id+'/assign-room','staff',{start_date:v.get('today'),end_date:v.get('contractEnd')},201);set('contractId',c.id);}",
+          "}",
+          "async function utilities(){",
+          "  await login('staff');",
+          "  const rows=await call('GET','/utilities','staff');",
+          "  for(const k of ['electricity','water']){const u=rows.find(x=>x.code===k.toUpperCase());if(!u)throw new Error('Missing seeded utility '+k);set(k+'Id',u.id);}",
+          "}",
+          "async function tariffSlot(k){",
+          "  const rows=await call('GET','/utility-tariffs?utility_id='+v.get(k+'Id'),'staff');",
+          "  const d=new Date((rows.map(x=>x.effective_from).sort()[0]||v.get('today'))+'T00:00:00Z');",
+          "  d.setUTCDate(d.getUTCDate()-1);return d.toISOString().slice(0,10);",
+          "}",
+          "async function meters(){",
+          "  if(metersReady)return;",
+          "  await room();await utilities();",
+          "  const rows=await call('GET','/meters?room_id='+v.get('roomId'),'staff');",
+          "  for(const [k,price]of [['electricity',1000],['water',15000]]){",
+          "    const m=rows.find(x=>x.utility_code===k.toUpperCase());if(!m)throw new Error('Missing automatic meter '+k);set(k+'MeterId',m.id);",
+          "    const tariffs=await call('GET','/utility-tariffs?utility_id='+v.get(k+'Id'),'staff'),today=v.get('today');",
+          "    let t=tariffs.find(x=>x.is_active&&x.effective_from<=today&&(!x.effective_to||x.effective_to>=today));",
+          "    if(!t)t=await call('POST','/utility-tariffs','staff',{utility_id:v.get(k+'Id'),name:'PM '+k+' '+tag,effective_from:today,effective_to:today,calculation_type:'Flat',tiers:[{tier_order:1,from_quantity:0,to_quantity:null,unit_price:price}]},201);",
+          "    set(k+'TariffId',t.id);",
+          "  }",
+          "  metersReady=true;",
+          "}",
+          "async function readings(water=true){",
+          "  await meters();",
+          "  for(const [k,amount]of [['electricity',80],...(water?[['water',10]]:[])]){",
+          "    const b=await call('POST','/meter-readings','staff',{meter_id:v.get(k+'MeterId'),period_start:v.get('today'),period_end:v.get('today'),previous_reading:0,current_reading:amount},201);",
+          "    set(k+'ReadingId',b.id);set(k+'Amount',b.calculated_amount);",
+          "  }",
+          "}",
+          "async function bill(shared=false,paid=false){",
+          "  await application('student',true,true);",
+          "  if(shared)await application('student2',true,true);",
+          "  await readings();",
+          "  const b=await call('POST','/bills/generate','staff',{room_id:v.get('roomId'),period_start:v.get('today'),period_end:v.get('today'),issued_date:v.get('today'),due_date:v.get('dueDate'),idempotency_key:v.get('billKey')},201);",
+          "  set('billId',b.id);",
+          "  if(shared){const rows=await call('GET','/bills?room_id='+v.get('roomId'),'student');set('firstStudentBillIds',JSON.stringify(rows.map(x=>x.id)));}",
+          "  if(paid)await call('POST','/bills/'+b.id+'/confirm-payment','staff',{method:'Cash',reference:'PM-'+tag});",
+          "}",
+          "try{",
+          "  switch(spec.setup){",
+          "    case 'none':break;",
+          "    case 'student':await student();break;",
+          "    case 'refresh':await student();set('refresh_token',v.get('studentRefreshToken'));break;",
+          "    case 'managed-user':{",
+          "      await login('admin');const b=await call('POST','/users','admin',{email:'managed.'+tag+'@example.com',full_name:'PM Staff',password:'Staff@123',role:'Staff'},201);set('managedUserId',b.id);break;",
+          "    }",
+          "    case 'building':await building();break;",
+          "    case 'room':await room();break;",
+          "    case 'application':await application();break;",
+          "    case 'approved':await application('student',true);break;",
+          "    case 'contract':await application('student',true,true);break;",
+          "    case 'tariff-slot':await utilities();set('tariffDate',await tariffSlot(spec.kind));break;",
+          "    case 'meters':await meters();break;",
+          "    case 'electricity-reading':await readings(false);break;",
+          "    case 'readings':await readings();break;",
+          "    case 'bill':await bill();break;",
+          "    case 'paid':await bill(false,true);break;",
+          "    case 'shared-bill':await bill(true);break;",
+          "    case 'shared-paid':await bill(true,true);break;",
+          "    case 'full-room':await application('student',true,true);await application('student2',true,true);await application('student3',true);break;",
+          "    default:throw new Error('Unknown setup '+spec.setup);",
+          "  }",
+          "  if(spec.role){",
+          "    if(['student','student2','outsider'].includes(spec.role))await student(spec.role);else await login(spec.role);",
+          "    set('access_token',tokens[spec.role]);",
+          "  }",
+          "}catch(error){",
+          "  pm.test('Setup prerequisites succeeded',()=>{throw error;});",
+          "  console.error(error.message);",
+          "  pm.execution.skipRequest();",
+          "  throw error;",
+          "}",
+          "",
+          "",
+          "})().catch(error=>{pm.test('Setup completed',()=>{throw error;});console.error(error.message);if(pm.execution && pm.execution.skipRequest)pm.execution.skipRequest();});"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Tuần 1 — Nền tảng và ba loại tài khoản",
+      "item": [
+        {
+          "id": "ea748fb4-54f4-5189-b56f-0f3076afceed",
+          "name": "01.01 - API đang sống",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/healthz",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "**Kế hoạch:** Plan!B4 — Chạy FastAPI, PostgreSQL, Docker Compose và Alembic\n\n**GET /healthz** · HTTP dự kiến **200**\n\nVai trò: Không cần token. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('API ok',()=>pm.expect(pm.response.json().status).to.eql('ok'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "e3a30dfc-968d-5f09-8cc8-3fd5cd611f44",
+          "name": "01.02 - PostgreSQL và migration sẵn sàng",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/readyz",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "**Kế hoạch:** Plan!B4 — Chạy FastAPI, PostgreSQL, Docker Compose và Alembic\n\n**GET /readyz** · HTTP dự kiến **200**\n\nVai trò: Không cần token. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Database ok',()=>pm.expect(pm.response.json().database).to.eql('ok'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "791f49b0-4e54-575a-8411-e6bd41ae371c",
+          "name": "02.01 - Sinh viên đăng ký tài khoản",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/auth/register",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "**Kế hoạch:** Plan!B5 — Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền\n\n**POST /api/v1/auth/register** · HTTP dự kiến **201**\n\nVai trò: Không cần token. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{studentEmail}}\",\n  \"full_name\": \"Postman {{runTag}}\",\n  \"password\": \"{{studentPassword}}\",\n  \"student_code\": \"{{studentCode}}\",\n  \"age\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "f77d4bbe-22ed-53ca-9d7b-e53fcc0feb47",
+          "name": "02.02 - Đăng nhập admin",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "**Kế hoạch:** Plan!B5 — Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền\n\n**POST /api/v1/auth/login** · HTTP dự kiến **200**\n\nVai trò: Không cần token. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "const b=pm.response.json();",
+                  "pm.test('Có access_token và refresh_token',()=>{pm.expect(b.access_token).to.be.a('string').and.not.empty;pm.expect(b.refresh_token).to.be.a('string').and.not.empty;});",
+                  "pm.collectionVariables.set('access_token',b.access_token);",
+                  "pm.collectionVariables.set('refresh_token',b.refresh_token);",
+                  "pm.test('Đúng vai trò',()=>pm.expect(b.user.role).to.eql('Admin'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "e3b77cd6-10ff-5f98-91d5-744f8045b074",
+          "name": "02.03 - Xem phiên admin",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/auth/me",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B5 — Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền\n\n**GET /api/v1/auth/me** · HTTP dự kiến **200**\n\nVai trò: admin. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Đúng vai trò',()=>pm.expect(pm.response.json().role).to.eql('Admin'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "e53fa73c-ea8d-521c-be4c-7850bf9be2eb",
+          "name": "02.04 - Đăng nhập staff",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "**Kế hoạch:** Plan!B5 — Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền\n\n**POST /api/v1/auth/login** · HTTP dự kiến **200**\n\nVai trò: Không cần token. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{staffEmail}}\",\n  \"password\": \"{{staffPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "const b=pm.response.json();",
+                  "pm.test('Có access_token và refresh_token',()=>{pm.expect(b.access_token).to.be.a('string').and.not.empty;pm.expect(b.refresh_token).to.be.a('string').and.not.empty;});",
+                  "pm.collectionVariables.set('access_token',b.access_token);",
+                  "pm.collectionVariables.set('refresh_token',b.refresh_token);",
+                  "pm.test('Đúng vai trò',()=>pm.expect(b.user.role).to.eql('Staff'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "bbb21c73-b1e3-5c8b-84fc-9403522a58cc",
+          "name": "02.05 - Xem phiên staff",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/auth/me",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B5 — Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền\n\n**GET /api/v1/auth/me** · HTTP dự kiến **200**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Đúng vai trò',()=>pm.expect(pm.response.json().role).to.eql('Staff'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "b0de068b-d4d4-584b-b240-35bd5d6712f6",
+          "name": "02.06 - Đăng nhập student",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "**Kế hoạch:** Plan!B5 — Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền\n\n**POST /api/v1/auth/login** · HTTP dự kiến **200**\n\nVai trò: Không cần token. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (student); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{studentEmail}}\",\n  \"password\": \"{{studentPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "const b=pm.response.json();",
+                  "pm.test('Có access_token và refresh_token',()=>{pm.expect(b.access_token).to.be.a('string').and.not.empty;pm.expect(b.refresh_token).to.be.a('string').and.not.empty;});",
+                  "pm.collectionVariables.set('access_token',b.access_token);",
+                  "pm.collectionVariables.set('refresh_token',b.refresh_token);",
+                  "pm.test('Đúng vai trò',()=>pm.expect(b.user.role).to.eql('Student'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "f67fcbe8-7703-5a37-b69d-bcaf4ec1f629",
+          "name": "02.07 - Xem phiên student",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/auth/me",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B5 — Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền\n\n**GET /api/v1/auth/me** · HTTP dự kiến **200**\n\nVai trò: student. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Đúng vai trò',()=>pm.expect(pm.response.json().role).to.eql('Student'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "14df86c8-324f-57d9-bc73-97eb06da6d39",
+          "name": "02.08 - Làm mới token",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/auth/refresh",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "**Kế hoạch:** Plan!B5 — Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền\n\n**POST /api/v1/auth/refresh** · HTTP dự kiến **200**\n\nVai trò: Không cần token. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (refresh); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "const b=pm.response.json();",
+                  "pm.test('Có access_token và refresh_token',()=>{pm.expect(b.access_token).to.be.a('string').and.not.empty;pm.expect(b.refresh_token).to.be.a('string').and.not.empty;});",
+                  "pm.collectionVariables.set('access_token',b.access_token);",
+                  "pm.collectionVariables.set('refresh_token',b.refresh_token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "919d8fe7-4a20-5c85-a87b-ea94470e5672",
+          "name": "02.09 - Admin xem người dùng",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/users",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B5 — Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền\n\n**GET /api/v1/users** · HTTP dự kiến **200**\n\nVai trò: admin. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Ba vai trò',()=>pm.response.json().forEach(x=>pm.expect(['Admin','Staff','Student']).to.include(x.role)));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "25a49507-5d4c-57f4-8ef7-b992d5e49769",
+          "name": "02.10 - Admin tạo tài khoản Staff",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/users",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B5 — Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền\n\n**POST /api/v1/users** · HTTP dự kiến **201**\n\nVai trò: admin. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"staff.{{runTag}}@example.com\",\n  \"full_name\": \"PM Staff\",\n  \"password\": \"Staff@123\",\n  \"role\": \"Staff\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "50bedc97-8260-5904-b780-c3cc8fa0cf03",
+          "name": "02.11 - Admin cập nhật tài khoản mẫu",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/v1/users/{{managedUserId}}",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B5 — Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền\n\n**PUT /api/v1/users/{{managedUserId}}** · HTTP dự kiến **200**\n\nVai trò: admin. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (managed-user); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"PM Staff Updated\",\n  \"role\": \"Staff\",\n  \"is_active\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "438e3dfb-f1e1-5868-9562-ee53187ebf55",
+          "name": "02.12 - Sinh viên xem hồ sơ",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/student-profile/me",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B5 — Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền\n\n**GET /api/v1/student-profile/me** · HTTP dự kiến **200**\n\nVai trò: student. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "3bc12610-13db-57ac-949c-f352b6b4d380",
+          "name": "02.13 - Sinh viên cập nhật hồ sơ",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/v1/student-profile/me",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B5 — Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền\n\n**PUT /api/v1/student-profile/me** · HTTP dự kiến **200**\n\nVai trò: student. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_code\": \"{{studentCode}}\",\n  \"faculty\": \"CNTT\",\n  \"cohort\": \"K24\",\n  \"phone\": \"0901234567\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "56f6175e-3f25-5e42-bfca-40beb957bc2c",
+          "name": "02.14 - Staff xem sinh viên có phân trang",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/students?page=1&pageSize=10",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B5 — Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền\n\n**GET /api/v1/students?page=1&pageSize=10** · HTTP dự kiến **200**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Có phân trang',()=>{const b=pm.response.json();pm.expect(b.items).to.be.an('array');pm.expect(b.pageSize).to.eql(10);});",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "9468708c-9ca6-5153-882b-990a493df16a",
+          "name": "03.01 - Admin thêm tòa",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/buildings",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B6 — Admin tạo tòa; Admin/Staff tạo phòng với sức chứa và giá ở\n\n**POST /api/v1/buildings** · HTTP dự kiến **201**\n\nVai trò: admin. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{buildingCode}}\",\n  \"name\": \"Postman {{runTag}}\",\n  \"address\": \"Demo\",\n  \"floors\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "cd4d2792-029c-5961-aa0f-32942c5dbdc7",
+          "name": "03.02 - Staff thêm phòng",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/rooms",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B6 — Admin tạo tòa; Admin/Staff tạo phòng với sức chứa và giá ở\n\n**POST /api/v1/rooms** · HTTP dự kiến **201**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (building); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"building_id\": \"{{buildingId}}\",\n  \"code\": \"101\",\n  \"floor\": 1,\n  \"capacity\": 2,\n  \"monthly_rate\": 500000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "b52b20e1-2548-504b-bc3e-9177a0b193a8",
+          "name": "04.01 - Sinh viên xem tòa",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/buildings",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B7 — Phòng tự tạo vị trí ở và công tơ điện/nước; sinh viên xem danh sách phòng\n\n**GET /api/v1/buildings** · HTTP dự kiến **200**\n\nVai trò: student. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "732a1b79-8a26-5786-9c92-71e20b3fd93b",
+          "name": "04.02 - Sinh viên xem phòng theo tòa",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/rooms?buildingId={{buildingId}}",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B7 — Phòng tự tạo vị trí ở và công tơ điện/nước; sinh viên xem danh sách phòng\n\n**GET /api/v1/rooms?buildingId={{buildingId}}** · HTTP dự kiến **200**\n\nVai trò: student. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (room); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Phòng mẫu xuất hiện',()=>pm.expect(pm.response.json().some(x=>x.id===pm.variables.get('roomId'))).to.eql(true));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "f29b6e63-88c4-5ba1-8ae0-ff55100a1bbd",
+          "name": "04.03 - Phòng tự sinh hai công tơ",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/meters?room_id={{roomId}}",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B7 — Phòng tự tạo vị trí ở và công tơ điện/nước; sinh viên xem danh sách phòng\n\n**GET /api/v1/meters?room_id={{roomId}}** · HTTP dự kiến **200**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (room); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Đúng hai công tơ điện/nước',()=>{const b=pm.response.json();pm.expect(b).to.have.length(2);pm.expect(b.map(x=>x.utility_code).sort()).to.eql(['ELECTRICITY','WATER']);});",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "1. Chạy FastAPI, PostgreSQL, Docker Compose và Alembic (Plan!B4)\n2. Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền (Plan!B5)\n3. Admin tạo tòa; Admin/Staff tạo phòng với sức chứa và giá ở (Plan!B6)\n4. Phòng tự tạo vị trí ở và công tơ điện/nước; sinh viên xem danh sách phòng (Plan!B7)\n\nMở bất kỳ request → Send. Mỗi request độc lập, kể cả ca lỗi. Có thể Run folder hoặc toàn collection, 1 iteration."
+    },
+    {
+      "name": "Tuần 2 — Đăng ký và hợp đồng cố định một phòng",
+      "item": [
+        {
+          "id": "adc34e78-4e6e-5e97-a561-b58f03a990ea",
+          "name": "05.01 - Sinh viên gửi đăng ký chọn phòng",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/housing-applications",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B9 — Sinh viên chọn phòng, gửi đăng ký theo kỳ và theo dõi trạng thái\n\n**POST /api/v1/housing-applications** · HTTP dự kiến **201**\n\nVai trò: student. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (room); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"term_code\": \"{{termCode}}\",\n  \"room_id\": \"{{roomId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "f8b852e4-2892-54c7-8f0d-916cf05a37b9",
+          "name": "05.02 - Sinh viên theo dõi đơn",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/housing-applications",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B9 — Sinh viên chọn phòng, gửi đăng ký theo kỳ và theo dõi trạng thái\n\n**GET /api/v1/housing-applications** · HTTP dự kiến **200**\n\nVai trò: student. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (application); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Thấy đơn vừa tạo',()=>pm.expect(pm.response.json().some(x=>x.id===pm.variables.get('applicationId'))).to.eql(true));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "390ddabb-d749-5d2c-bf05-fd66ad510420",
+          "name": "06.01 - Staff duyệt đơn",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/housing-applications/{{applicationId}}/approve",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B10 — Staff/Admin duyệt hoặc từ chối đăng ký, có lý do từ chối\n\n**POST /api/v1/housing-applications/{{applicationId}}/approve** · HTTP dự kiến **200**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (application); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Approved',()=>pm.expect(pm.response.json().status).to.eql('Approved'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "dcbbaf3a-4636-5a78-b7b2-27110c3cd9a5",
+          "name": "06.02 - Staff từ chối có lý do",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/housing-applications/{{applicationId}}/reject",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B10 — Staff/Admin duyệt hoặc từ chối đăng ký, có lý do từ chối\n\n**POST /api/v1/housing-applications/{{applicationId}}/reject** · HTTP dự kiến **200**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (application); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Hồ sơ chưa đầy đủ\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Rejected',()=>pm.expect(pm.response.json().status).to.eql('Rejected'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "0170a2c3-33c1-5564-8c4b-cb7b05e1f9ba",
+          "name": "07.01 - Lập hợp đồng gắn phòng đăng ký",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/contracts/{{applicationId}}/assign-room",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B11 — Staff/Admin lập hợp đồng gắn phòng đã đăng ký; kiểm tra chỗ trống\n\n**POST /api/v1/contracts/{{applicationId}}/assign-room** · HTTP dự kiến **201**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (approved); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"start_date\": \"{{today}}\",\n  \"end_date\": \"{{contractEnd}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201){",
+                  "pm.test('Đúng phòng',()=>{const b=pm.response.json();pm.expect(b.application_id).to.eql(pm.variables.get('applicationId'));pm.expect(b.current_assignment.building_code).to.eql(pm.variables.get('buildingCode').toUpperCase());pm.expect(b.current_assignment.room_code).to.eql('101');});",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "0fb65620-bc9a-59df-9033-01b723e0e25f",
+          "name": "08.01 - Sinh viên xem hợp đồng",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/contracts/me",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B12 — Sinh viên xem hợp đồng; Staff/Admin có thể chấm dứt hợp đồng\n\n**GET /api/v1/contracts/me** · HTTP dự kiến **200**\n\nVai trò: student. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (contract); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Đúng hợp đồng',()=>pm.expect(pm.response.json().id).to.eql(pm.variables.get('contractId')));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "85d7b31b-6050-54d5-a50c-a82af3233ba2",
+          "name": "08.02 - Staff xem hợp đồng",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/contracts",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B12 — Sinh viên xem hợp đồng; Staff/Admin có thể chấm dứt hợp đồng\n\n**GET /api/v1/contracts** · HTTP dự kiến **200**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (contract); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "51480b5e-8882-54b5-b69e-3cac751cd2bd",
+          "name": "08.03 - Staff chấm dứt hợp đồng mẫu",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/contracts/{{contractId}}/terminate",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B12 — Sinh viên xem hợp đồng; Staff/Admin có thể chấm dứt hợp đồng\n\n**POST /api/v1/contracts/{{contractId}}/terminate** · HTTP dự kiến **200**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (contract); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"termination_date\": \"{{today}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Terminated',()=>pm.expect(pm.response.json().status).to.eql('Terminated'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "5. Sinh viên chọn phòng, gửi đăng ký theo kỳ và theo dõi trạng thái (Plan!B9)\n6. Staff/Admin duyệt hoặc từ chối đăng ký, có lý do từ chối (Plan!B10)\n7. Staff/Admin lập hợp đồng gắn phòng đã đăng ký; kiểm tra chỗ trống (Plan!B11)\n8. Sinh viên xem hợp đồng; Staff/Admin có thể chấm dứt hợp đồng (Plan!B12)\n\nMở bất kỳ request → Send. Mỗi request độc lập, kể cả ca lỗi. Có thể Run folder hoặc toàn collection, 1 iteration."
+    },
+    {
+      "name": "Tuần 3 — Chỉ số điện và nước",
+      "item": [
+        {
+          "id": "cc40a513-04cb-5d7d-9d0c-f50ea96b61c7",
+          "name": "09.01 - Danh sách hai tiện ích",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/utilities",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B14 — Duy trì hai tiện ích điện và nước; mỗi phòng có một công tơ cho từng loại\n\n**GET /api/v1/utilities** · HTTP dự kiến **200**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Có điện và nước',()=>pm.expect(pm.response.json().map(x=>x.code)).to.include.members(['ELECTRICITY','WATER']));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "b273a753-effa-537d-bc49-862cb5312799",
+          "name": "09.02 - Danh sách công tơ phòng",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/meters?room_id={{roomId}}",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B14 — Duy trì hai tiện ích điện và nước; mỗi phòng có một công tơ cho từng loại\n\n**GET /api/v1/meters?room_id={{roomId}}** · HTTP dự kiến **200**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (room); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "e4521742-148b-5fa7-971c-a198bc438ede",
+          "name": "10.01 - Thiết lập biểu giá điện",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/utility-tariffs",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B15 — Staff/Admin thiết lập biểu giá và nhập chỉ số theo kỳ cho phòng\n\n**POST /api/v1/utility-tariffs** · HTTP dự kiến **201**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (tariff-slot); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"utility_id\": \"{{electricityId}}\",\n  \"name\": \"PM electricity {{runTag}}\",\n  \"effective_from\": \"{{tariffDate}}\",\n  \"effective_to\": \"{{tariffDate}}\",\n  \"calculation_type\": \"Flat\",\n  \"tiers\": [\n    {\n      \"tier_order\": 1,\n      \"from_quantity\": 0,\n      \"to_quantity\": null,\n      \"unit_price\": 1000\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "c074118e-9374-5185-9247-9f643a50daf0",
+          "name": "10.02 - Nhập chỉ số điện",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/meter-readings",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B15 — Staff/Admin thiết lập biểu giá và nhập chỉ số theo kỳ cho phòng\n\n**POST /api/v1/meter-readings** · HTTP dự kiến **201**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (meters); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"meter_id\": \"{{electricityMeterId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{today}}\",\n  \"previous_reading\": 0,\n  \"current_reading\": 80\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201){",
+                  "const b=pm.response.json();",
+                  "pm.test('Tiêu thụ đúng, có snapshot, tiền không âm',()=>{pm.expect(Number(b.consumption)).to.eql(Number(b.current_reading)-Number(b.previous_reading));pm.expect(b.tariff_snapshot).to.be.an('object').and.not.empty;pm.expect(b.tariff_id).to.be.a('string');pm.expect(Number(b.calculated_amount)).to.be.at.least(0);});",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "0a8323d1-1882-514d-9096-1bf29ae459fd",
+          "name": "10.03 - Thiết lập biểu giá nước",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/utility-tariffs",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B15 — Staff/Admin thiết lập biểu giá và nhập chỉ số theo kỳ cho phòng\n\n**POST /api/v1/utility-tariffs** · HTTP dự kiến **201**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (tariff-slot); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"utility_id\": \"{{waterId}}\",\n  \"name\": \"PM water {{runTag}}\",\n  \"effective_from\": \"{{tariffDate}}\",\n  \"effective_to\": \"{{tariffDate}}\",\n  \"calculation_type\": \"Flat\",\n  \"tiers\": [\n    {\n      \"tier_order\": 1,\n      \"from_quantity\": 0,\n      \"to_quantity\": null,\n      \"unit_price\": 15000\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "c5a6386f-9dcc-5e65-bcd4-1a6c12ef51cd",
+          "name": "10.04 - Nhập chỉ số nước",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/meter-readings",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B15 — Staff/Admin thiết lập biểu giá và nhập chỉ số theo kỳ cho phòng\n\n**POST /api/v1/meter-readings** · HTTP dự kiến **201**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (meters); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"meter_id\": \"{{waterMeterId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{today}}\",\n  \"previous_reading\": 0,\n  \"current_reading\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201){",
+                  "const b=pm.response.json();",
+                  "pm.test('Tiêu thụ đúng, có snapshot, tiền không âm',()=>{pm.expect(Number(b.consumption)).to.eql(Number(b.current_reading)-Number(b.previous_reading));pm.expect(b.tariff_snapshot).to.be.an('object').and.not.empty;pm.expect(b.tariff_id).to.be.a('string');pm.expect(Number(b.calculated_amount)).to.be.at.least(0);});",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "ef1a51e2-f561-5f2f-8a6e-73bd92a4b199",
+          "name": "11.01 - [400] Chặn chỉ số giảm",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/meter-readings",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B16 — Chặn chỉ số giảm và chỉ số trùng công tơ/kỳ\n\n**POST /api/v1/meter-readings** · HTTP dự kiến **400** · errorCode **VALIDATION_ERROR**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (meters); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"meter_id\": \"{{electricityMeterId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{today}}\",\n  \"previous_reading\": 10,\n  \"current_reading\": 9\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400',()=>pm.response.to.have.status(400));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode VALIDATION_ERROR',()=>pm.expect(pm.response.json().errorCode).to.eql('VALIDATION_ERROR'));",
+                  "if(pm.response.code===400){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "d5d9c42e-b2d5-554a-ade5-a97988d56b3a",
+          "name": "11.02 - [409] Chặn chỉ số trùng kỳ",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/meter-readings",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B16 — Chặn chỉ số giảm và chỉ số trùng công tơ/kỳ\n\n**POST /api/v1/meter-readings** · HTTP dự kiến **409** · errorCode **METER_READING_ALREADY_EXISTS**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (electricity-reading); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"meter_id\": \"{{electricityMeterId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{today}}\",\n  \"previous_reading\": 0,\n  \"current_reading\": 80\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409',()=>pm.response.to.have.status(409));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode METER_READING_ALREADY_EXISTS',()=>pm.expect(pm.response.json().errorCode).to.eql('METER_READING_ALREADY_EXISTS'));",
+                  "if(pm.response.code===409){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "2a320efc-b3b9-5fb3-acad-3212d35eb9e2",
+          "name": "12.01 - Kiểm tra tiền và snapshot giá",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/meter-readings?meter_id={{electricityMeterId}}",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B17 — Kiểm tra tiền điện, nước và snapshot giá sau khi ghi chỉ số\n\n**GET /api/v1/meter-readings?meter_id={{electricityMeterId}}** · HTTP dự kiến **200**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (readings); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Snapshot và tiền đúng',()=>{const b=pm.response.json()[0];pm.expect(b.tariff_snapshot).to.be.an('object').and.not.empty;pm.expect(Number(b.consumption)).to.eql(80);pm.expect(Number(b.calculated_amount)).to.eql(Number(pm.variables.get('electricityAmount')));});",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "9. Duy trì hai tiện ích điện và nước; mỗi phòng có một công tơ cho từng loại (Plan!B14)\n10. Staff/Admin thiết lập biểu giá và nhập chỉ số theo kỳ cho phòng (Plan!B15)\n11. Chặn chỉ số giảm và chỉ số trùng công tơ/kỳ (Plan!B16)\n12. Kiểm tra tiền điện, nước và snapshot giá sau khi ghi chỉ số (Plan!B17)\n\nMở bất kỳ request → Send. Mỗi request độc lập, kể cả ca lỗi. Có thể Run folder hoặc toàn collection, 1 iteration."
+    },
+    {
+      "name": "Tuần 4 — Một hóa đơn điện nước cho mỗi phòng/kỳ",
+      "item": [
+        {
+          "id": "b42bbfe0-d584-5913-8288-9ef7f395da59",
+          "name": "13.01 - [422] Không phát hành khi thiếu chỉ số nước",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/bills/generate",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B19 — Chỉ phát hành khi phòng đủ chỉ số điện và nước của cùng kỳ\n\n**POST /api/v1/bills/generate** · HTTP dự kiến **422** · errorCode **READINGS_INCOMPLETE**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (electricity-reading); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": \"{{roomId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{today}}\",\n  \"issued_date\": \"{{today}}\",\n  \"due_date\": \"{{dueDate}}\",\n  \"idempotency_key\": \"{{billKey}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 422',()=>pm.response.to.have.status(422));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode READINGS_INCOMPLETE',()=>pm.expect(pm.response.json().errorCode).to.eql('READINGS_INCOMPLETE'));",
+                  "if(pm.response.code===422){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "efe87f09-21ce-5af0-a8c5-b2fe62ae2772",
+          "name": "14.01 - Phát hành hóa đơn phòng-kỳ",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/bills/generate",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B20 — Phát đúng một hóa đơn cho phòng/kỳ, gồm hai dòng điện và nước\n\n**POST /api/v1/bills/generate** · HTTP dự kiến **201**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (readings); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": \"{{roomId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{today}}\",\n  \"issued_date\": \"{{today}}\",\n  \"due_date\": \"{{dueDate}}\",\n  \"idempotency_key\": \"{{billKey}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201){",
+                  "const bill=pm.response.json();",
+                  "pm.test('Hóa đơn phòng, không gắn riêng sinh viên',()=>{pm.expect(bill.room_id).to.eql(pm.variables.get('roomId'));pm.expect(bill.student_id).to.eql(null);pm.expect(bill.contract_id).to.eql(null);});",
+                  "pm.test('Hai dòng điện/nước; tổng khớp các dòng',()=>{pm.expect(bill.items).to.have.length(2);pm.expect(bill.items.map(x=>x.item_type).sort()).to.eql(['Electricity','Water']);pm.expect(Number(bill.total_amount)).to.eql(bill.items.reduce((s,x)=>s+Number(x.amount),0));});",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "7347ef32-8e65-5a17-82d0-fbf79a77b1af",
+          "name": "15.01 - Sinh viên thứ nhất xem hóa đơn",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/bills/{{billId}}",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B21 — Sinh viên từng ở phòng trong kỳ xem chung hóa đơn phòng\n\n**GET /api/v1/bills/{{billId}}** · HTTP dự kiến **200**\n\nVai trò: student. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (bill); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "const bill=pm.response.json();",
+                  "pm.test('Hóa đơn phòng, không gắn riêng sinh viên',()=>{pm.expect(bill.room_id).to.eql(pm.variables.get('roomId'));pm.expect(bill.student_id).to.eql(null);pm.expect(bill.contract_id).to.eql(null);});",
+                  "pm.test('Hai dòng điện/nước; tổng khớp các dòng',()=>{pm.expect(bill.items).to.have.length(2);pm.expect(bill.items.map(x=>x.item_type).sort()).to.eql(['Electricity','Water']);pm.expect(Number(bill.total_amount)).to.eql(bill.items.reduce((s,x)=>s+Number(x.amount),0));});",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "6708ccb3-bed9-55c9-8e2e-04e854d83808",
+          "name": "15.02 - Sinh viên thứ hai xem cùng hóa đơn",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/bills/{{billId}}",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B21 — Sinh viên từng ở phòng trong kỳ xem chung hóa đơn phòng\n\n**GET /api/v1/bills/{{billId}}** · HTTP dự kiến **200**\n\nVai trò: student2. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (shared-bill); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "const bill=pm.response.json();",
+                  "pm.test('Hóa đơn phòng, không gắn riêng sinh viên',()=>{pm.expect(bill.room_id).to.eql(pm.variables.get('roomId'));pm.expect(bill.student_id).to.eql(null);pm.expect(bill.contract_id).to.eql(null);});",
+                  "pm.test('Hai dòng điện/nước; tổng khớp các dòng',()=>{pm.expect(bill.items).to.have.length(2);pm.expect(bill.items.map(x=>x.item_type).sort()).to.eql(['Electricity','Water']);pm.expect(Number(bill.total_amount)).to.eql(bill.items.reduce((s,x)=>s+Number(x.amount),0));});",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "798a5381-ad77-5740-b490-bba06bec62a6",
+          "name": "16.01 - Gửi lại cùng key trả cùng hóa đơn",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/bills/generate",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B22 — Chặn phát hành trùng và kiểm tra khóa idempotency\n\n**POST /api/v1/bills/generate** · HTTP dự kiến **201**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (bill); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": \"{{roomId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{today}}\",\n  \"issued_date\": \"{{today}}\",\n  \"due_date\": \"{{dueDate}}\",\n  \"idempotency_key\": \"{{billKey}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201){",
+                  "pm.test('Cùng billId',()=>pm.expect(pm.response.json().id).to.eql(pm.variables.get('billId')));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "6a660670-48c9-5c6c-9c6b-425b9fe94fd3",
+          "name": "16.02 - [409] Cùng phòng-kỳ, key mới",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/bills/generate",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B22 — Chặn phát hành trùng và kiểm tra khóa idempotency\n\n**POST /api/v1/bills/generate** · HTTP dự kiến **409** · errorCode **BILL_PERIOD_ALREADY_EXISTS**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (bill); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": \"{{roomId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{today}}\",\n  \"issued_date\": \"{{today}}\",\n  \"due_date\": \"{{dueDate}}\",\n  \"idempotency_key\": \"other-{{runTag}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409',()=>pm.response.to.have.status(409));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode BILL_PERIOD_ALREADY_EXISTS',()=>pm.expect(pm.response.json().errorCode).to.eql('BILL_PERIOD_ALREADY_EXISTS'));",
+                  "if(pm.response.code===409){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "d8ef25ac-fcfa-5bd0-ba11-c180131a937a",
+          "name": "16.03 - [409] Cùng key, dữ liệu khác",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/bills/generate",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B22 — Chặn phát hành trùng và kiểm tra khóa idempotency\n\n**POST /api/v1/bills/generate** · HTTP dự kiến **409** · errorCode **IDEMPOTENCY_KEY_REUSED**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (bill); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": \"{{roomId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{contractEnd}}\",\n  \"issued_date\": \"{{today}}\",\n  \"due_date\": \"{{dueDate}}\",\n  \"idempotency_key\": \"{{billKey}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409',()=>pm.response.to.have.status(409));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode IDEMPOTENCY_KEY_REUSED',()=>pm.expect(pm.response.json().errorCode).to.eql('IDEMPOTENCY_KEY_REUSED'));",
+                  "if(pm.response.code===409){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "13. Chỉ phát hành khi phòng đủ chỉ số điện và nước của cùng kỳ (Plan!B19)\n14. Phát đúng một hóa đơn cho phòng/kỳ, gồm hai dòng điện và nước (Plan!B20)\n15. Sinh viên từng ở phòng trong kỳ xem chung hóa đơn phòng (Plan!B21)\n16. Chặn phát hành trùng và kiểm tra khóa idempotency (Plan!B22)\n\nMở bất kỳ request → Send. Mỗi request độc lập, kể cả ca lỗi. Có thể Run folder hoặc toàn collection, 1 iteration."
+    },
+    {
+      "name": "Tuần 5 — Xác nhận thanh toán đơn giản",
+      "item": [
+        {
+          "id": "504127b5-9d28-51e8-9f9c-aaffd28bdfb9",
+          "name": "17.01 - Staff xác nhận trả đủ",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/bills/{{billId}}/confirm-payment",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B24 — Staff/Admin xác nhận hóa đơn phòng đã thanh toán đủ\n\n**POST /api/v1/bills/{{billId}}/confirm-payment** · HTTP dự kiến **200**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (bill); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"Cash\",\n  \"reference\": \"PM-{{runTag}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "const paid=pm.response.json();",
+                  "pm.test('Paid, trả đủ, dư nợ 0',()=>{pm.expect(paid.status).to.eql('Paid');pm.expect(Number(paid.paid_amount)).to.eql(Number(paid.total_amount));pm.expect(Number(paid.balance_amount)).to.eql(0);});",
+                  "pm.test('Lưu phương thức, tham chiếu, thời điểm',()=>{pm.expect(paid.payment_method).to.eql('Cash');pm.expect(paid.payment_reference).to.eql('PM-'+pm.variables.get('runTag'));pm.expect(paid.paid_at).to.be.a('string').and.not.empty;});",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "30bee2cd-310e-51a3-8817-a6ea26c5ce9e",
+          "name": "18.01 - Xem thông tin xác nhận thanh toán",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/bills/{{billId}}",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B25 — Lưu phương thức, mã tham chiếu, người và thời điểm xác nhận\n\n**GET /api/v1/bills/{{billId}}** · HTTP dự kiến **200**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (paid); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "const paid=pm.response.json();",
+                  "pm.test('Paid, trả đủ, dư nợ 0',()=>{pm.expect(paid.status).to.eql('Paid');pm.expect(Number(paid.paid_amount)).to.eql(Number(paid.total_amount));pm.expect(Number(paid.balance_amount)).to.eql(0);});",
+                  "pm.test('Lưu phương thức, tham chiếu, thời điểm',()=>{pm.expect(paid.payment_method).to.eql('Cash');pm.expect(paid.payment_reference).to.eql('PM-'+pm.variables.get('runTag'));pm.expect(paid.paid_at).to.be.a('string').and.not.empty;});",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "e1f06909-e50b-58cd-af8c-a73e495ec32d",
+          "name": "19.01 - [409] Chặn xác nhận lần hai",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/bills/{{billId}}/confirm-payment",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B26 — Chặn xác nhận thanh toán lại; sinh viên xem trạng thái đã trả\n\n**POST /api/v1/bills/{{billId}}/confirm-payment** · HTTP dự kiến **409** · errorCode **BILL_NOT_PAYABLE**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (paid); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"Cash\",\n  \"reference\": \"PM-{{runTag}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409',()=>pm.response.to.have.status(409));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode BILL_NOT_PAYABLE',()=>pm.expect(pm.response.json().errorCode).to.eql('BILL_NOT_PAYABLE'));",
+                  "if(pm.response.code===409){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "8bfbac90-08c8-514a-8606-a7e1bb8e66a4",
+          "name": "19.02 - Sinh viên xem đã trả",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/bills/{{billId}}",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B26 — Chặn xác nhận thanh toán lại; sinh viên xem trạng thái đã trả\n\n**GET /api/v1/bills/{{billId}}** · HTTP dự kiến **200**\n\nVai trò: student. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (paid); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "const paid=pm.response.json();",
+                  "pm.test('Paid, trả đủ, dư nợ 0',()=>{pm.expect(paid.status).to.eql('Paid');pm.expect(Number(paid.paid_amount)).to.eql(Number(paid.total_amount));pm.expect(Number(paid.balance_amount)).to.eql(0);});",
+                  "pm.test('Lưu phương thức, tham chiếu, thời điểm',()=>{pm.expect(paid.payment_method).to.eql('Cash');pm.expect(paid.payment_reference).to.eql('PM-'+pm.variables.get('runTag'));pm.expect(paid.paid_at).to.be.a('string').and.not.empty;});",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "2c146bb8-fde9-551e-9796-a2f85096f8a9",
+          "name": "20.01 - Đối chiếu tổng tiền và hai dòng điện nước",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/bills/{{billId}}",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B27 — Đối chiếu tổng tiền hóa đơn với hai dòng điện và nước\n\n**GET /api/v1/bills/{{billId}}** · HTTP dự kiến **200**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (bill); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "const bill=pm.response.json();",
+                  "pm.test('Hóa đơn phòng, không gắn riêng sinh viên',()=>{pm.expect(bill.room_id).to.eql(pm.variables.get('roomId'));pm.expect(bill.student_id).to.eql(null);pm.expect(bill.contract_id).to.eql(null);});",
+                  "pm.test('Hai dòng điện/nước; tổng khớp các dòng',()=>{pm.expect(bill.items).to.have.length(2);pm.expect(bill.items.map(x=>x.item_type).sort()).to.eql(['Electricity','Water']);pm.expect(Number(bill.total_amount)).to.eql(bill.items.reduce((s,x)=>s+Number(x.amount),0));});",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "17. Staff/Admin xác nhận hóa đơn phòng đã thanh toán đủ (Plan!B24)\n18. Lưu phương thức, mã tham chiếu, người và thời điểm xác nhận (Plan!B25)\n19. Chặn xác nhận thanh toán lại; sinh viên xem trạng thái đã trả (Plan!B26)\n20. Đối chiếu tổng tiền hóa đơn với hai dòng điện và nước (Plan!B27)\n\nMở bất kỳ request → Send. Mỗi request độc lập, kể cả ca lỗi. Có thể Run folder hoặc toàn collection, 1 iteration."
+    },
+    {
+      "name": "Tuần 6 — Kiểm thử luồng nghiệp vụ",
+      "item": [
+        {
+          "id": "d764ee4c-2730-5bb0-99e7-2666f42c22dc",
+          "name": "21.01 - Hai sinh viên cùng phòng, một hóa đơn chung",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/bills?room_id={{roomId}}",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B29 — Kiểm thử hai sinh viên cùng phòng chỉ nhận một hóa đơn chung\n\n**GET /api/v1/bills?room_id={{roomId}}** · HTTP dự kiến **200**\n\nVai trò: student2. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (shared-bill); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Cả hai thấy một hóa đơn chung',()=>{const b=pm.response.json();pm.expect(b.map(x=>x.id)).to.include(pm.variables.get('billId'));pm.expect(JSON.parse(pm.variables.get('firstStudentBillIds'))).to.include(pm.variables.get('billId'));pm.expect(b.filter(x=>x.room_id===pm.variables.get('roomId'))).to.have.length(1);});",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "b81e7eca-d95e-5c24-9123-576c95ac892a",
+          "name": "22.01 - [409] Phòng đủ hai chỗ không nhận người thứ ba",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/contracts/{{applicationId}}/assign-room",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B30 — Kiểm thử phòng đủ/chật, đơn chưa duyệt và hợp đồng trùng\n\n**POST /api/v1/contracts/{{applicationId}}/assign-room** · HTTP dự kiến **409** · errorCode **ROOM_FULL**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (full-room); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"start_date\": \"{{today}}\",\n  \"end_date\": \"{{contractEnd}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409',()=>pm.response.to.have.status(409));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode ROOM_FULL',()=>pm.expect(pm.response.json().errorCode).to.eql('ROOM_FULL'));",
+                  "if(pm.response.code===409){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "eb19a6a0-411b-5d9d-89f6-20649251c0e6",
+          "name": "22.02 - [409] Đơn chưa duyệt không lập hợp đồng",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/contracts/{{applicationId}}/assign-room",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B30 — Kiểm thử phòng đủ/chật, đơn chưa duyệt và hợp đồng trùng\n\n**POST /api/v1/contracts/{{applicationId}}/assign-room** · HTTP dự kiến **409** · errorCode **APPLICATION_NOT_APPROVED**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (application); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"start_date\": \"{{today}}\",\n  \"end_date\": \"{{contractEnd}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409',()=>pm.response.to.have.status(409));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode APPLICATION_NOT_APPROVED',()=>pm.expect(pm.response.json().errorCode).to.eql('APPLICATION_NOT_APPROVED'));",
+                  "if(pm.response.code===409){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "df96712b-878b-52ae-b31f-b7b4cca696c1",
+          "name": "22.03 - [409] Không lập trùng hợp đồng",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/contracts/{{applicationId}}/assign-room",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B30 — Kiểm thử phòng đủ/chật, đơn chưa duyệt và hợp đồng trùng\n\n**POST /api/v1/contracts/{{applicationId}}/assign-room** · HTTP dự kiến **409** · errorCode **CONTRACT_ALREADY_EXISTS**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (contract); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"start_date\": \"{{today}}\",\n  \"end_date\": \"{{contractEnd}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409',()=>pm.response.to.have.status(409));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode CONTRACT_ALREADY_EXISTS',()=>pm.expect(pm.response.json().errorCode).to.eql('CONTRACT_ALREADY_EXISTS'));",
+                  "if(pm.response.code===409){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "0d5424ea-337e-5e39-b2c9-cf7f13e4944e",
+          "name": "23.01 - Admin được xem người dùng",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/users",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B31 — Kiểm thử quyền Admin, Staff, Student trên các API chính\n\n**GET /api/v1/users** · HTTP dự kiến **200**\n\nVai trò: admin. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "66ecdbab-a4e3-5633-b64f-4e0c813e61c0",
+          "name": "23.02 - Staff được xem công tơ",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/meters",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B31 — Kiểm thử quyền Admin, Staff, Student trên các API chính\n\n**GET /api/v1/meters** · HTTP dự kiến **200**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "92db1549-bb27-5b3b-b0bb-4bf2fa135f00",
+          "name": "23.03 - [403] Staff không được thêm tòa",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/buildings",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B31 — Kiểm thử quyền Admin, Staff, Student trên các API chính\n\n**POST /api/v1/buildings** · HTTP dự kiến **403** · errorCode **AUTH_FORBIDDEN**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{buildingCode}}\",\n  \"name\": \"Postman {{runTag}}\",\n  \"address\": \"Demo\",\n  \"floors\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403',()=>pm.response.to.have.status(403));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode AUTH_FORBIDDEN',()=>pm.expect(pm.response.json().errorCode).to.eql('AUTH_FORBIDDEN'));",
+                  "if(pm.response.code===403){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "faae6cda-c022-5345-afdb-984943a71362",
+          "name": "23.04 - [403] Student không được thêm tòa",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/buildings",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B31 — Kiểm thử quyền Admin, Staff, Student trên các API chính\n\n**POST /api/v1/buildings** · HTTP dự kiến **403** · errorCode **AUTH_FORBIDDEN**\n\nVai trò: student. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{buildingCode}}\",\n  \"name\": \"Postman {{runTag}}\",\n  \"address\": \"Demo\",\n  \"floors\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403',()=>pm.response.to.have.status(403));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode AUTH_FORBIDDEN',()=>pm.expect(pm.response.json().errorCode).to.eql('AUTH_FORBIDDEN'));",
+                  "if(pm.response.code===403){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "a699c111-2513-5436-b478-987f58b212d5",
+          "name": "23.05 - [403] Student không được phát hành hóa đơn",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/bills/generate",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B31 — Kiểm thử quyền Admin, Staff, Student trên các API chính\n\n**POST /api/v1/bills/generate** · HTTP dự kiến **403** · errorCode **AUTH_FORBIDDEN**\n\nVai trò: student. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (room); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": \"{{roomId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{today}}\",\n  \"issued_date\": \"{{today}}\",\n  \"due_date\": \"{{dueDate}}\",\n  \"idempotency_key\": \"{{billKey}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403',()=>pm.response.to.have.status(403));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode AUTH_FORBIDDEN',()=>pm.expect(pm.response.json().errorCode).to.eql('AUTH_FORBIDDEN'));",
+                  "if(pm.response.code===403){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "20adb81f-05b8-5b36-9360-fb7d118a1734",
+          "name": "23.06 - [403] Student không được xem hóa đơn phòng khác",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/bills/{{billId}}",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B31 — Kiểm thử quyền Admin, Staff, Student trên các API chính\n\n**GET /api/v1/bills/{{billId}}** · HTTP dự kiến **403** · errorCode **OWN_DATA_ONLY**\n\nVai trò: outsider. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (bill); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403',()=>pm.response.to.have.status(403));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode OWN_DATA_ONLY',()=>pm.expect(pm.response.json().errorCode).to.eql('OWN_DATA_ONLY'));",
+                  "if(pm.response.code===403){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "185fd402-5f73-5116-b24f-858681335b8f",
+          "name": "23.07 - [401] Không có token",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/auth/me",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "**Kế hoạch:** Plan!B31 — Kiểm thử quyền Admin, Staff, Student trên các API chính\n\n**GET /api/v1/auth/me** · HTTP dự kiến **401** · errorCode **AUTH_INVALID_TOKEN**\n\nVai trò: Không cần token. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401',()=>pm.response.to.have.status(401));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode AUTH_INVALID_TOKEN',()=>pm.expect(pm.response.json().errorCode).to.eql('AUTH_INVALID_TOKEN'));",
+                  "if(pm.response.code===401){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "d881b871-d2d7-5e67-b050-220829f06adf",
+          "name": "24.01 - [400] Chỉ số giảm",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/meter-readings",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B32 — Kiểm thử lỗi chỉ số, hóa đơn thiếu dữ liệu và thanh toán lặp\n\n**POST /api/v1/meter-readings** · HTTP dự kiến **400** · errorCode **VALIDATION_ERROR**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (meters); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"meter_id\": \"{{electricityMeterId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{today}}\",\n  \"previous_reading\": 10,\n  \"current_reading\": 9\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400',()=>pm.response.to.have.status(400));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode VALIDATION_ERROR',()=>pm.expect(pm.response.json().errorCode).to.eql('VALIDATION_ERROR'));",
+                  "if(pm.response.code===400){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "65e64d9e-1ddd-5257-b284-247f0c6745d2",
+          "name": "24.02 - [409] Chỉ số trùng",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/meter-readings",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B32 — Kiểm thử lỗi chỉ số, hóa đơn thiếu dữ liệu và thanh toán lặp\n\n**POST /api/v1/meter-readings** · HTTP dự kiến **409** · errorCode **METER_READING_ALREADY_EXISTS**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (electricity-reading); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"meter_id\": \"{{electricityMeterId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{today}}\",\n  \"previous_reading\": 0,\n  \"current_reading\": 80\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409',()=>pm.response.to.have.status(409));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode METER_READING_ALREADY_EXISTS',()=>pm.expect(pm.response.json().errorCode).to.eql('METER_READING_ALREADY_EXISTS'));",
+                  "if(pm.response.code===409){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "3b69623a-afd0-5d41-a4f4-65b9aa9081da",
+          "name": "24.03 - [422] Thiếu chỉ số",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/bills/generate",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B32 — Kiểm thử lỗi chỉ số, hóa đơn thiếu dữ liệu và thanh toán lặp\n\n**POST /api/v1/bills/generate** · HTTP dự kiến **422** · errorCode **READINGS_INCOMPLETE**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (electricity-reading); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": \"{{roomId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{today}}\",\n  \"issued_date\": \"{{today}}\",\n  \"due_date\": \"{{dueDate}}\",\n  \"idempotency_key\": \"{{billKey}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 422',()=>pm.response.to.have.status(422));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode READINGS_INCOMPLETE',()=>pm.expect(pm.response.json().errorCode).to.eql('READINGS_INCOMPLETE'));",
+                  "if(pm.response.code===422){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "0f59fe6f-f8b7-5911-b8ae-0b31758b4785",
+          "name": "24.04 - [409] Thanh toán lặp",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/bills/{{billId}}/confirm-payment",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B32 — Kiểm thử lỗi chỉ số, hóa đơn thiếu dữ liệu và thanh toán lặp\n\n**POST /api/v1/bills/{{billId}}/confirm-payment** · HTTP dự kiến **409** · errorCode **BILL_NOT_PAYABLE**\n\nVai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (paid); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"Cash\",\n  \"reference\": \"PM-{{runTag}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409',()=>pm.response.to.have.status(409));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode BILL_NOT_PAYABLE',()=>pm.expect(pm.response.json().errorCode).to.eql('BILL_NOT_PAYABLE'));",
+                  "if(pm.response.code===409){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "21. Kiểm thử hai sinh viên cùng phòng chỉ nhận một hóa đơn chung (Plan!B29)\n22. Kiểm thử phòng đủ/chật, đơn chưa duyệt và hợp đồng trùng (Plan!B30)\n23. Kiểm thử quyền Admin, Staff, Student trên các API chính (Plan!B31)\n24. Kiểm thử lỗi chỉ số, hóa đơn thiếu dữ liệu và thanh toán lặp (Plan!B32)\n\nMở bất kỳ request → Send. Mỗi request độc lập, kể cả ca lỗi. Có thể Run folder hoặc toàn collection, 1 iteration."
+    },
+    {
+      "name": "Tuần 7 — Tài liệu và Postman",
+      "item": [
+        {
+          "id": "17900549-03fa-5127-a06a-a7f5e89a890f",
+          "name": "25.01 - OpenAPI đúng phạm vi MVP",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/openapi.json",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "**Kế hoạch:** Plan!B34 — Cập nhật OpenAPI/Swagger cho API MVP; bỏ sơ đồ, chuyển phòng và giường công khai\n\n**GET /openapi.json** · HTTP dự kiến **200**\n\nVai trò: Không cần token. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Có MVP, không có giường/chuyển phòng công khai',()=>{const p=pm.response.json().paths;pm.expect(p).to.have.property('/api/v1/bills/generate');pm.expect(p).to.have.property('/api/v1/contracts/{application_id}/assign-room');Object.keys(p).forEach(x=>pm.expect(x).not.to.match(/beds|room-matrix|transfer/));});",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "89f59a84-5928-5f43-8dd9-a3e4e43636d5",
+          "name": "25.02 - Trang Swagger",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/docs",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "**Kế hoạch:** Plan!B34 — Cập nhật OpenAPI/Swagger cho API MVP; bỏ sơ đồ, chuyển phòng và giường công khai\n\n**GET /docs** · HTTP dự kiến **200**\n\nVai trò: Không cần token. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Swagger UI',()=>pm.expect(pm.response.text()).to.include('swagger-ui'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "6e0d3954-a275-5213-8c91-086de71cc04c",
+          "name": "26.01 - Luồng đăng ký đến trả đủ bằng một Send",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/bills/{{billId}}",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B35 — Cập nhật Postman Collection cho luồng đăng ký đến thanh toán\n\n**GET /api/v1/bills/{{billId}}** · HTTP dự kiến **200**\n\nVai trò: student. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (paid); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "const paid=pm.response.json();",
+                  "pm.test('Paid, trả đủ, dư nợ 0',()=>{pm.expect(paid.status).to.eql('Paid');pm.expect(Number(paid.paid_amount)).to.eql(Number(paid.total_amount));pm.expect(Number(paid.balance_amount)).to.eql(0);});",
+                  "pm.test('Lưu phương thức, tham chiếu, thời điểm',()=>{pm.expect(paid.payment_method).to.eql('Cash');pm.expect(paid.payment_reference).to.eql('PM-'+pm.variables.get('runTag'));pm.expect(paid.paid_at).to.be.a('string').and.not.empty;});",
+                  "const bill=pm.response.json();",
+                  "pm.test('Hóa đơn phòng, không gắn riêng sinh viên',()=>{pm.expect(bill.room_id).to.eql(pm.variables.get('roomId'));pm.expect(bill.student_id).to.eql(null);pm.expect(bill.contract_id).to.eql(null);});",
+                  "pm.test('Hai dòng điện/nước; tổng khớp các dòng',()=>{pm.expect(bill.items).to.have.length(2);pm.expect(bill.items.map(x=>x.item_type).sort()).to.eql(['Electricity','Water']);pm.expect(Number(bill.total_amount)).to.eql(bill.items.reduce((s,x)=>s+Number(x.amount),0));});",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "1e74d2c0-9f1c-53e8-8070-f42750ce5c4a",
+          "name": "27.01 - Ví dụ lỗi đăng nhập và Problem JSON",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "**Kế hoạch:** Plan!B36 — Ghi ví dụ request/response, mã lỗi và cách chạy dữ liệu demo\n\n**POST /api/v1/auth/login** · HTTP dự kiến **401** · errorCode **AUTH_INVALID_CREDENTIALS**\n\nVai trò: Không cần token. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"missing.{{runTag}}@example.com\",\n  \"password\": \"Incorrect@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401',()=>pm.response.to.have.status(401));",
+                  "pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});",
+                  "pm.test('errorCode AUTH_INVALID_CREDENTIALS',()=>pm.expect(pm.response.json().errorCode).to.eql('AUTH_INVALID_CREDENTIALS'));",
+                  "if(pm.response.code===401){",
+                  "",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "8ba49510-d0ff-5f3a-a280-1f508494cebc",
+          "name": "28.01 - Rà endpoint và ba vai trò",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/users",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B37 — Rà lại ba vai trò và endpoint theo checklist\n\n**GET /api/v1/users** · HTTP dự kiến **200**\n\nVai trò: admin. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Đủ ba vai trò',()=>pm.expect([...new Set(pm.response.json().map(x=>x.role))].sort()).to.eql(['Admin','Staff','Student']));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "25. Cập nhật OpenAPI/Swagger cho API MVP; bỏ sơ đồ, chuyển phòng và giường công khai (Plan!B34)\n26. Cập nhật Postman Collection cho luồng đăng ký đến thanh toán (Plan!B35)\n27. Ghi ví dụ request/response, mã lỗi và cách chạy dữ liệu demo (Plan!B36)\n28. Rà lại ba vai trò và endpoint theo checklist (Plan!B37)\n\nMở bất kỳ request → Send. Mỗi request độc lập, kể cả ca lỗi. Có thể Run folder hoặc toàn collection, 1 iteration."
+    },
+    {
+      "name": "Tuần 8 — Docker và bàn giao",
+      "item": [
+        {
+          "id": "2c917747-dd60-5538-99db-b0941631cba0",
+          "name": "29.01 - Gateway Docker đang sống",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/gateway/healthz",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "**Kế hoạch:** Plan!B39 — Build và chạy API, PostgreSQL, Adminer bằng Docker Compose\n\n**GET /gateway/healthz** · HTTP dự kiến **200**\n\nVai trò: Không cần token. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Gateway ok',()=>pm.expect(pm.response.json().service).to.eql('gateway'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "47933f9c-893d-5e1d-add8-58565a8d3d89",
+          "name": "30.01 - API và PostgreSQL sẵn sàng",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/readyz",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "**Kế hoạch:** Plan!B40 — Chạy migration và kiểm tra /readyz, Swagger trên môi trường demo\n\n**GET /readyz** · HTTP dự kiến **200**\n\nVai trò: Không cần token. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Ready',()=>pm.expect(pm.response.json()).to.eql({status:'ready',database:'ok'}));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "1796297f-c2c2-543d-82cb-eb0e1d7df428",
+          "name": "30.02 - Swagger môi trường demo",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/docs",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "**Kế hoạch:** Plan!B40 — Chạy migration và kiểm tra /readyz, Swagger trên môi trường demo\n\n**GET /docs** · HTTP dự kiến **200**\n\nVai trò: Không cần token. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "pm.test('Swagger UI',()=>pm.expect(pm.response.text()).to.include('swagger-ui'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "0b1dc56e-69f6-5144-a797-2df10a3ed32d",
+          "name": "31.01 - Kiểm thử đầu cuối trên dữ liệu demo mới",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/bills/{{billId}}",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B41 — Dùng database mẫu, kiểm thử đầu cuối và lưu hướng dẫn chạy\n\n**GET /api/v1/bills/{{billId}}** · HTTP dự kiến **200**\n\nVai trò: student. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (paid); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "const paid=pm.response.json();",
+                  "pm.test('Paid, trả đủ, dư nợ 0',()=>{pm.expect(paid.status).to.eql('Paid');pm.expect(Number(paid.paid_amount)).to.eql(Number(paid.total_amount));pm.expect(Number(paid.balance_amount)).to.eql(0);});",
+                  "pm.test('Lưu phương thức, tham chiếu, thời điểm',()=>{pm.expect(paid.payment_method).to.eql('Cash');pm.expect(paid.payment_reference).to.eql('PM-'+pm.variables.get('runTag'));pm.expect(paid.paid_at).to.be.a('string').and.not.empty;});",
+                  "const bill=pm.response.json();",
+                  "pm.test('Hóa đơn phòng, không gắn riêng sinh viên',()=>{pm.expect(bill.room_id).to.eql(pm.variables.get('roomId'));pm.expect(bill.student_id).to.eql(null);pm.expect(bill.contract_id).to.eql(null);});",
+                  "pm.test('Hai dòng điện/nước; tổng khớp các dòng',()=>{pm.expect(bill.items).to.have.length(2);pm.expect(bill.items.map(x=>x.item_type).sort()).to.eql(['Electricity','Water']);pm.expect(Number(bill.total_amount)).to.eql(bill.items.reduce((s,x)=>s+Number(x.amount),0));});",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "a99275e4-c142-5001-8013-bbaf34402883",
+          "name": "32.01 - Demo trọn luồng và hai sinh viên xem đã trả",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/bills/{{billId}}",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "**Kế hoạch:** Plan!B42 — Demo: sinh viên đăng ký → cán bộ duyệt → hợp đồng phòng → chỉ số → hóa đơn phòng → trả đủ\n\n**GET /api/v1/bills/{{billId}}** · HTTP dự kiến **200**\n\nVai trò: student2. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (shared-paid); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.\n\nMỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "if(pm.response.code===200){",
+                  "const paid=pm.response.json();",
+                  "pm.test('Paid, trả đủ, dư nợ 0',()=>{pm.expect(paid.status).to.eql('Paid');pm.expect(Number(paid.paid_amount)).to.eql(Number(paid.total_amount));pm.expect(Number(paid.balance_amount)).to.eql(0);});",
+                  "pm.test('Lưu phương thức, tham chiếu, thời điểm',()=>{pm.expect(paid.payment_method).to.eql('Cash');pm.expect(paid.payment_reference).to.eql('PM-'+pm.variables.get('runTag'));pm.expect(paid.paid_at).to.be.a('string').and.not.empty;});",
+                  "const bill=pm.response.json();",
+                  "pm.test('Hóa đơn phòng, không gắn riêng sinh viên',()=>{pm.expect(bill.room_id).to.eql(pm.variables.get('roomId'));pm.expect(bill.student_id).to.eql(null);pm.expect(bill.contract_id).to.eql(null);});",
+                  "pm.test('Hai dòng điện/nước; tổng khớp các dòng',()=>{pm.expect(bill.items).to.have.length(2);pm.expect(bill.items.map(x=>x.item_type).sort()).to.eql(['Electricity','Water']);pm.expect(Number(bill.total_amount)).to.eql(bill.items.reduce((s,x)=>s+Number(x.amount),0));});",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "29. Build và chạy API, PostgreSQL, Adminer bằng Docker Compose (Plan!B39)\n30. Chạy migration và kiểm tra /readyz, Swagger trên môi trường demo (Plan!B40)\n31. Dùng database mẫu, kiểm thử đầu cuối và lưu hướng dẫn chạy (Plan!B41)\n32. Demo: sinh viên đăng ký → cán bộ duyệt → hợp đồng phòng → chỉ số → hóa đơn phòng → trả đủ (Plan!B42)\n\nMở bất kỳ request → Send. Mỗi request độc lập, kể cả ca lỗi. Có thể Run folder hoặc toàn collection, 1 iteration."
+    }
+  ]
+}
