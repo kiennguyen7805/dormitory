@@ -1,0 +1,1088 @@
+{
+  "info": {
+    "name": "Dormitory - CHAY NHANH TU DONG",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Import, select No Environment, then Run entire collection in order (1 iteration, 300 ms delay). Requires Docker Compose and seeded demo accounts. Automatically creates demo records and pays the generated room bill. Repeatable with unique codes. Tariff setup branches automatically in Runner. Period is one day for a quick demo. Stop on HTTP failure. Tokens and IDs stay in collection variables; access_token points to the new student at the end."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081",
+      "type": "string"
+    },
+    {
+      "key": "adminEmail",
+      "value": "admin@dormitory.local",
+      "type": "string"
+    },
+    {
+      "key": "adminPassword",
+      "value": "Admin@123",
+      "type": "string"
+    },
+    {
+      "key": "staffEmail",
+      "value": "staff@dormitory.local",
+      "type": "string"
+    },
+    {
+      "key": "staffPassword",
+      "value": "Staff@123",
+      "type": "string"
+    },
+    {
+      "key": "studentPassword",
+      "value": "Student@123",
+      "type": "string"
+    },
+    {
+      "key": "runTag",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "today",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "contractEnd",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "dueDate",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "studentEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "studentCode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "buildingCode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "roomCode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "termCode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "billKey",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "staffToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "studentToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "buildingId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "roomId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "applicationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "contractId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "electricityId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "waterId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "electricityMeterId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "waterMeterId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "billId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Always resolve variables from this collection, even if another environment was selected.",
+          "pm.collectionVariables.toObject && Object.entries(pm.collectionVariables.toObject()).forEach(([k,v])=>pm.variables.set(k,v));"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Khoi tao tu dong",
+      "item": [
+        {
+          "name": "Bat dau - tao ma va ngay tu dong",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/readyz",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const v = pm.collectionVariables;",
+                  "const tag = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);",
+                  "const now = new Date();",
+                  "const day = n => { const d = new Date(now); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10); };",
+                  "v.set('runTag', tag); v.set('today', day(0)); v.set('contractEnd', day(90)); v.set('dueDate', day(15));",
+                  "v.set('studentEmail', 'quick.'+tag+'@example.com'); v.set('studentCode', 'Q'+tag.slice(-7).toUpperCase());",
+                  "v.set('buildingCode', 'Q'+tag.toUpperCase()); v.set('roomCode', '101'); v.set('termCode', 'Q-'+tag); v.set('billKey', 'quick-'+tag);",
+                  "['access_token','adminToken','staffToken','studentToken','buildingId','roomId','applicationId','contractId','electricityId','waterId','electricityMeterId','waterMeterId','billId'].forEach(k => v.unset(k));",
+                  "// Local variables prevent a previously selected environment from overriding this run.",
+                  "['baseUrl','adminEmail','adminPassword','staffEmail','staffPassword','studentPassword'].forEach(k => pm.variables.set(k,v.get(k)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 - Tu dong lay access token",
+      "item": [
+        {
+          "name": "Dang nhap admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }",
+                  "const token = pm.response.json().access_token; pm.expect(token).to.be.a('string').and.not.empty; pm.collectionVariables.set('adminToken', token); pm.collectionVariables.set('access_token', token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dang nhap staff",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{staffEmail}}\",\n  \"password\": \"{{staffPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }",
+                  "const token = pm.response.json().access_token; pm.expect(token).to.be.a('string').and.not.empty; pm.collectionVariables.set('staffToken', token); pm.collectionVariables.set('access_token', token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dang ky sinh vien moi",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/register",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{studentEmail}}\",\n  \"full_name\": \"Quickrun {{runTag}}\",\n  \"password\": \"{{studentPassword}}\",\n  \"student_code\": \"{{studentCode}}\",\n  \"age\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code !== 201) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dang nhap student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{studentEmail}}\",\n  \"password\": \"{{studentPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }",
+                  "const token = pm.response.json().access_token; pm.expect(token).to.be.a('string').and.not.empty; pm.collectionVariables.set('studentToken', token); pm.collectionVariables.set('access_token', token);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Tao phong va hop dong",
+      "item": [
+        {
+          "name": "Tao toa nha",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/buildings",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{buildingCode}}\",\n  \"name\": \"Quickrun {{runTag}}\",\n  \"address\": \"Demo\",\n  \"floors\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code !== 201) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }",
+                  "pm.collectionVariables.set('buildingId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tao phong",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/rooms",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"building_id\": \"{{buildingId}}\",\n  \"code\": \"{{roomCode}}\",\n  \"floor\": 1,\n  \"capacity\": 2,\n  \"monthly_rate\": 500000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code !== 201) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }",
+                  "pm.collectionVariables.set('roomId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sinh vien gui don",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/housing-applications",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{studentToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"term_code\": \"{{termCode}}\",\n  \"room_id\": \"{{roomId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code !== 201) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }",
+                  "pm.collectionVariables.set('applicationId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Staff duyet don",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/housing-applications/{{applicationId}}/approve",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Staff lap hop dong",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/contracts/{{applicationId}}/assign-room",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"start_date\": \"{{today}}\",\n  \"end_date\": \"{{contractEnd}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code !== 201) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }",
+                  "pm.collectionVariables.set('contractId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sinh vien xem hop dong",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/contracts/me",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{studentToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }",
+                  "pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('contractId'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - Lay ID tien ich va cong to",
+      "item": [
+        {
+          "name": "Lay ID dien va nuoc",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/utilities",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }",
+                  "const rows=pm.response.json(); ['electricity','water'].forEach(k=>{ const x=rows.find(x=>x.code===k.toUpperCase()); pm.expect(x,k).to.exist; pm.collectionVariables.set(k+'Id',x.id); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lay ID cong to cua phong",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/meters?room_id={{roomId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }",
+                  "const rows=pm.response.json(); ['electricity','water'].forEach(k=>{ const x=rows.find(x=>x.utility_code===k.toUpperCase()); pm.expect(x,k).to.exist; pm.collectionVariables.set(k+'MeterId',x.id); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 - Dien",
+      "item": [
+        {
+          "name": "Tim bieu gia electricity",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/utility-tariffs?utility_id={{electricityId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }",
+                  "const date=pm.collectionVariables.get('today'); const found=pm.response.json().find(x=>x.is_active && x.effective_from<=date && (!x.effective_to || x.effective_to>=date)); if(found) pm.execution.setNextRequest('Ghi chi so electricity');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tao bieu gia electricity neu chua co",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/utility-tariffs",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"utility_id\": \"{{electricityId}}\",\n  \"name\": \"Quickrun electricity {{runTag}}\",\n  \"effective_from\": \"{{today}}\",\n  \"effective_to\": \"{{today}}\",\n  \"calculation_type\": \"Flat\",\n  \"tiers\": [\n    {\n      \"tier_order\": 1,\n      \"from_quantity\": 0,\n      \"to_quantity\": null,\n      \"unit_price\": 1000\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code !== 201) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ghi chi so electricity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/meter-readings",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"meter_id\": \"{{electricityMeterId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{today}}\",\n  \"previous_reading\": 0,\n  \"current_reading\": 80\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code !== 201) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 - Nuoc",
+      "item": [
+        {
+          "name": "Tim bieu gia water",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/utility-tariffs?utility_id={{waterId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }",
+                  "const date=pm.collectionVariables.get('today'); const found=pm.response.json().find(x=>x.is_active && x.effective_from<=date && (!x.effective_to || x.effective_to>=date)); if(found) pm.execution.setNextRequest('Ghi chi so water');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tao bieu gia water neu chua co",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/utility-tariffs",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"utility_id\": \"{{waterId}}\",\n  \"name\": \"Quickrun water {{runTag}}\",\n  \"effective_from\": \"{{today}}\",\n  \"effective_to\": \"{{today}}\",\n  \"calculation_type\": \"Flat\",\n  \"tiers\": [\n    {\n      \"tier_order\": 1,\n      \"from_quantity\": 0,\n      \"to_quantity\": null,\n      \"unit_price\": 15000\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code !== 201) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ghi chi so water",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/meter-readings",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"meter_id\": \"{{waterMeterId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{today}}\",\n  \"previous_reading\": 0,\n  \"current_reading\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code !== 201) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 - Hoa don va thanh toan",
+      "item": [
+        {
+          "name": "Tao hoa don phong",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/bills/generate",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": \"{{roomId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{today}}\",\n  \"issued_date\": \"{{today}}\",\n  \"due_date\": \"{{dueDate}}\",\n  \"idempotency_key\": \"{{billKey}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code !== 201) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }",
+                  "pm.collectionVariables.set('billId', pm.response.json().id);",
+                  "const b=pm.response.json(); pm.test('Hai dong dien nuoc',()=>pm.expect(b.items).to.have.length(2)); pm.test('Tong tien duong',()=>pm.expect(Number(b.total_amount)).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sinh vien xem hoa don",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/bills/{{billId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{studentToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Staff xac nhan thanh toan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/bills/{{billId}}/confirm-payment",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"Cash\",\n  \"reference\": \"QUICK-{{runTag}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }",
+                  "const b=pm.response.json(); pm.test('Da thanh toan',()=>pm.expect(b.status).to.eql('Paid')); pm.test('Het no',()=>pm.expect(Number(b.balance_amount)).to.eql(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ket thuc - sinh vien xem ket qua",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/bills/{{billId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{studentToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(pm.response.text()); }",
+                  "pm.test('Paid',()=>pm.expect(pm.response.json().status).to.eql('Paid')); pm.collectionVariables.set('access_token',pm.collectionVariables.get('studentToken')); console.log('DONE. IDs and tokens are saved in collection variables.');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

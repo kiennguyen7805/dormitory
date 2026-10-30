@@ -1,0 +1,837 @@
+{
+  "info": {
+    "name": "Dormitory - Luồng E2E chạy một lần",
+    "description": "Chạy toàn bộ collection bằng Collection Runner theo đúng thứ tự. Cần bật Docker Compose và seed dữ liệu mặc định. Mỗi lần chạy tạo sinh viên, tòa nhà, phòng và mã hóa đơn mới. Biểu giá đang hiệu lực được tái sử dụng nếu có.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Kiểm tra và khởi tạo",
+      "item": [
+        {
+          "name": "Health check gateway",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gateway/healthz"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d=new Date(); const iso=d.toISOString().slice(0,10); const end=new Date(d); end.setDate(end.getDate()+30); const due=new Date(d); due.setDate(due.getDate()+15);",
+                  "const tag=Date.now().toString().slice(-8);",
+                  "pm.collectionVariables.set('runTag',tag); pm.collectionVariables.set('today',iso); pm.collectionVariables.set('periodEnd',end.toISOString().slice(0,10)); pm.collectionVariables.set('dueDate',due.toISOString().slice(0,10));",
+                  "pm.collectionVariables.set('studentEmail','pm.'+tag+'@example.com'); pm.collectionVariables.set('studentCode','PM'+tag); pm.collectionVariables.set('buildingCode','P'+tag); pm.collectionVariables.set('roomCode','R'+tag); pm.collectionVariables.set('billKey','pm-'+tag);",
+                  "['adminToken','staffToken','studentToken','buildingId','roomId','applicationId','contractId','electricityId','waterId','electricityMeterId','waterMeterId','electricityTariffId','waterTariffId','billId'].forEach(k=>pm.collectionVariables.unset(k));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('ready','yes');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 - Đăng nhập và tạo sinh viên",
+      "item": [
+        {
+          "name": "Đăng nhập quản trị",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@dormitory.local\",\n  \"password\": \"Admin@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('admin', pm.response.json().access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Đăng nhập nhân viên",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"staff@dormitory.local\",\n  \"password\": \"Staff@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('staff', pm.response.json().access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Đăng ký sinh viên mới",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{studentEmail}}\",\n  \"full_name\": \"Postman Student {{runTag}}\",\n  \"password\": \"Student@123\",\n  \"student_code\": \"{{studentCode}}\",\n  \"age\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Đăng nhập sinh viên mới",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{studentEmail}}\",\n  \"password\": \"Student@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('student', pm.response.json().access_token);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Tòa nhà, phòng và đăng ký ở",
+      "item": [
+        {
+          "name": "Tạo tòa nhà",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/buildings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{buildingCode}}\",\n  \"name\": \"Postman {{runTag}}\",\n  \"address\": \"Postman test\",\n  \"floors\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('buildingId',pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tạo phòng (tự sinh đồng hồ điện/nước)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/rooms",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"building_id\": \"{{buildingId}}\",\n  \"code\": \"{{roomCode}}\",\n  \"floor\": 2,\n  \"capacity\": 2,\n  \"monthly_rate\": 500000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('roomId',pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sinh viên xem danh sách phòng",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/rooms?buildingId={{buildingId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sinh viên tạo đơn đăng ký",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/housing-applications",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"term_code\": \"PM-{{runTag}}\",\n  \"room_id\": \"{{roomId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('applicationId',pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Nhân viên duyệt đơn",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/housing-applications/{{applicationId}}/approve"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Nhân viên xếp phòng và tạo hợp đồng",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/contracts/{{applicationId}}/assign-room",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"start_date\": \"{{today}}\",\n  \"end_date\": \"{{periodEnd}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('contractId',pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sinh viên xem hợp đồng của mình",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/contracts/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - Đồng hồ, biểu giá và chỉ số",
+      "item": [
+        {
+          "name": "Lấy danh sách tiện ích",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/utilities"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const u=pm.response.json(); pm.collectionVariables.set('electricityId',u.find(x=>x.code==='ELECTRICITY').id); pm.collectionVariables.set('waterId',u.find(x=>x.code==='WATER').id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lấy đồng hồ của phòng",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/meters?room_id={{roomId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const m=pm.response.json(); pm.collectionVariables.set('electricityMeterId',m.find(x=>x.utility_code==='ELECTRICITY').id); pm.collectionVariables.set('waterMeterId',m.find(x=>x.utility_code==='WATER').id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Kiểm tra biểu giá điện đang hiệu lực",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/utility-tariffs?utility_id={{electricityId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const rows=pm.response.json(); const today=pm.collectionVariables.get('today'); const found=rows.find(x=>x.effective_from<=today && (!x.effective_to || x.effective_to>=today)); if(found) pm.collectionVariables.set(pm.variables.get(''electricityTariffId''),found.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tạo biểu giá điện nếu chưa có",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/utility-tariffs",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"utility_id\": \"{{electricityId}}\",\n  \"name\": \"PM Electricity {{runTag}}\",\n  \"effective_from\": \"{{today}}\",\n  \"effective_to\": null,\n  \"calculation_type\": \"Flat\",\n  \"tiers\": [\n    {\n      \"tier_order\": 1,\n      \"from_quantity\": 0,\n      \"to_quantity\": null,\n      \"unit_price\": 1000\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if(pm.collectionVariables.get('electricityTariffId')) pm.execution.skipRequest();"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('electricityTariffId',pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Kiểm tra biểu giá nước đang hiệu lực",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/utility-tariffs?utility_id={{waterId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const rows=pm.response.json(); const today=pm.collectionVariables.get('today'); const found=rows.find(x=>x.effective_from<=today && (!x.effective_to || x.effective_to>=today)); if(found) pm.collectionVariables.set(pm.variables.get(''waterTariffId''),found.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tạo biểu giá nước nếu chưa có",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/utility-tariffs",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"utility_id\": \"{{waterId}}\",\n  \"name\": \"PM Water {{runTag}}\",\n  \"effective_from\": \"{{today}}\",\n  \"effective_to\": null,\n  \"calculation_type\": \"Flat\",\n  \"tiers\": [\n    {\n      \"tier_order\": 1,\n      \"from_quantity\": 0,\n      \"to_quantity\": null,\n      \"unit_price\": 15000\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if(pm.collectionVariables.get('waterTariffId')) pm.execution.skipRequest();"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('waterTariffId',pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ghi chỉ số điện",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/meter-readings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"meter_id\": \"{{electricityMeterId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{periodEnd}}\",\n  \"previous_reading\": 0,\n  \"current_reading\": 80\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ghi chỉ số nước",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/meter-readings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"meter_id\": \"{{waterMeterId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{periodEnd}}\",\n  \"previous_reading\": 0,\n  \"current_reading\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 - Hóa đơn và thanh toán",
+      "item": [
+        {
+          "name": "Tạo hóa đơn phòng",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/bills/generate",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": \"{{roomId}}\",\n  \"period_start\": \"{{today}}\",\n  \"period_end\": \"{{periodEnd}}\",\n  \"issued_date\": \"{{today}}\",\n  \"due_date\": \"{{dueDate}}\",\n  \"idempotency_key\": \"{{billKey}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "const b=pm.response.json(); pm.collectionVariables.set('billId',b.id); pm.test('Hóa đơn có hai khoản tiện ích',()=>pm.expect(b.items).to.have.length(2)); pm.test('Tổng tiền lớn hơn 0',()=>pm.expect(b.total_amount).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sinh viên xem chi tiết hóa đơn",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/bills/{{billId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Nhân viên xác nhận thanh toán",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/bills/{{billId}}/confirm-payment",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"Cash\",\n  \"reference\": \"PM-{{runTag}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const b=pm.response.json(); pm.test('Hóa đơn đã thanh toán',()=>pm.expect(b.status).to.eql('Paid')); pm.test('Còn nợ bằng 0',()=>pm.expect(b.balance).to.eql(0));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
