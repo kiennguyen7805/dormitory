@@ -4,7 +4,7 @@ from uuid import uuid4
 import pytest
 
 from dormitory_domain.common import BedStatus
-from dormitory_domain.housing import Bed, Building, RoomType
+from dormitory_domain.housing import Bed, Building, Room
 
 
 def test_building_normalizes_code() -> None:
@@ -17,9 +17,12 @@ def test_building_requires_positive_floor_count() -> None:
         Building(code="A", name="Khu A", address="", floors=0)
 
 
-def test_room_type_rejects_negative_rate() -> None:
+def test_room_rejects_negative_rate() -> None:
     with pytest.raises(ValueError):
-        RoomType(name="Phòng 4", default_monthly_rate=Decimal("-1"))
+        Room(
+            building_id=uuid4(), code="101", floor=1, capacity=4,
+            monthly_rate=Decimal("-1"),
+        )
 
 
 def test_bed_status_is_derived() -> None:
