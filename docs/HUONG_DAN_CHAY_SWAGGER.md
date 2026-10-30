@@ -64,19 +64,19 @@ Muốn thử phân quyền, đăng nhập lại bằng Staff hoặc Student rồ
 ### Quản lý phòng
 
 1. Admin đăng nhập.
-2. Tạo building bằng `POST /api/buildings`.
-3. Tạo room type bằng `POST /api/room-types`.
-4. Tạo room bằng `POST /api/rooms`.
-5. Tạo bed bằng `POST /api/beds`.
-6. Xem sơ đồ bằng `GET /api/room-matrix`.
+2. Tạo tòa bằng `POST /api/v1/buildings`.
+3. Xem danh sách tòa bằng `GET /api/v1/buildings`.
+4. Tạo phòng bằng `POST /api/v1/rooms`.
+5. Xem danh sách phòng bằng `GET /api/v1/rooms`.
+
+Các API loại phòng và giường vẫn phục vụ luồng đăng ký, phân giường cũ nhưng được ẩn khỏi Swagger.
 
 ### Đơn đăng ký và hợp đồng
 
 1. Student gọi `POST /api/housing-applications`.
 2. Staff/Admin gọi API approve application.
 3. Staff/Admin gọi API assign bed để tạo contract.
-4. Xem contract và assignment history.
-5. Thử transfer hoặc terminate contract.
+4. Xem contract và thử terminate contract.
 
 ## 5. Dừng hệ thống
 
