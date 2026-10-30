@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, model_validator
 
 class HousingApplicationCreate(BaseModel):
     term_code: str = Field(min_length=1, max_length=30)
-    preferred_room_type_id: UUID
+    room_id: UUID
 
 
 class HousingApplicationReject(BaseModel):
@@ -19,15 +19,14 @@ class HousingApplicationRead(BaseModel):
     student_id: UUID
     student_name: str
     term_code: str
-    preferred_room_type_id: UUID
-    preferred_room_type_name: str
+    room_id: UUID | None
+    room_code: str | None
     status: str
     rejection_reason: str | None
     created_at: datetime
 
 
-class AssignBedRequest(BaseModel):
-    bed_id: UUID
+class AssignRoomRequest(BaseModel):
     start_date: date
     end_date: date
 
@@ -36,11 +35,6 @@ class AssignBedRequest(BaseModel):
         if self.end_date <= self.start_date:
             raise ValueError("Ngày kết thúc phải sau ngày bắt đầu.")
         return self
-
-
-class TransferBedRequest(BaseModel):
-    bed_id: UUID
-    transfer_date: date
 
 
 class TerminateContractRequest(BaseModel):

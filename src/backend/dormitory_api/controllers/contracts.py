@@ -3,17 +3,15 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Response, status
 
 from dormitory_application.contracts import (
-    AssignBedRequest,
-    BedAssignmentRead,
+    AssignRoomRequest,
     ContractRead,
     ContractService,
     HousingApplicationCreate,
     HousingApplicationRead,
     HousingApplicationReject,
     TerminateContractRequest,
-    TransferBedRequest,
 )
-from dormitory_infrastructure.persistence.models import UserModel
+from dormitory_infrastructure.persistence.repositories import AuthUser
 
 from dormitory_api.dependencies import (
     admin_or_staff,
@@ -27,7 +25,7 @@ router = APIRouter(tags=["Contracts"])
 @router.post("/housing-applications", response_model=HousingApplicationRead, status_code=201)
 def create_application(
     payload: HousingApplicationCreate,
-    user: UserModel = Depends(get_current_user),
+    user: AuthUser = Depends(get_current_user),
     service: ContractService = Depends(get_contract_service),
 ):
     if user.role.name != "Student":
@@ -43,7 +41,7 @@ def create_application(
 @router.get("/housing-applications", response_model=list[HousingApplicationRead])
 def list_applications(
     status: str | None = None,
-    user: UserModel = Depends(get_current_user),
+    user: AuthUser = Depends(get_current_user),
     service: ContractService = Depends(get_contract_service),
 ):
     return service.list_applications(user.id, user.role.name, status)
@@ -56,7 +54,7 @@ def list_applications(
 )
 def approve_application(
     application_id: UUID,
-    user: UserModel = Depends(get_current_user),
+    user: AuthUser = Depends(get_current_user),
     service: ContractService = Depends(get_contract_service),
 ):
     return service.approve_application(application_id, user.id)
@@ -70,29 +68,29 @@ def approve_application(
 def reject_application(
     application_id: UUID,
     payload: HousingApplicationReject,
-    user: UserModel = Depends(get_current_user),
+    user: AuthUser = Depends(get_current_user),
     service: ContractService = Depends(get_contract_service),
 ):
     return service.reject_application(application_id, user.id, payload.reason)
 
 
 @router.post(
-    "/contracts/{application_id}/assign-bed",
+    "/contracts/{application_id}/assign-room",
     response_model=ContractRead,
     status_code=201,
     dependencies=[Depends(admin_or_staff)],
 )
-def assign_bed(
+def assign_room(
     application_id: UUID,
-    payload: AssignBedRequest,
+    payload: AssignRoomRequest,
     service: ContractService = Depends(get_contract_service),
 ):
-    return service.assign_bed(application_id, payload)
+    return service.assign_room(application_id, payload)
 
 
 @router.get("/contracts", response_model=list[ContractRead])
 def list_contracts(
-    user: UserModel = Depends(get_current_user),
+    user: AuthUser = Depends(get_current_user),
     service: ContractService = Depends(get_contract_service),
 ):
     return service.list_contracts(user.id, user.role.name)
@@ -100,7 +98,7 @@ def list_contracts(
 
 @router.get("/contracts/me", response_model=ContractRead | None)
 def my_contract(
-    user: UserModel = Depends(get_current_user),
+    user: AuthUser = Depends(get_current_user),
     service: ContractService = Depends(get_contract_service),
 ):
     return service.get_my_contract(user.id)
@@ -109,35 +107,10 @@ def my_contract(
 @router.get("/contracts/{contract_id}", response_model=ContractRead)
 def get_contract(
     contract_id: UUID,
-    user: UserModel = Depends(get_current_user),
+    user: AuthUser = Depends(get_current_user),
     service: ContractService = Depends(get_contract_service),
 ):
     return service.get_contract(contract_id, user.id, user.role.name)
-
-
-@router.get(
-    "/contracts/{contract_id}/assignment-history",
-    response_model=list[BedAssignmentRead],
-)
-def assignment_history(
-    contract_id: UUID,
-    user: UserModel = Depends(get_current_user),
-    service: ContractService = Depends(get_contract_service),
-):
-    return service.assignment_history(contract_id, user.id, user.role.name)
-
-
-@router.post(
-    "/contracts/{contract_id}/transfer",
-    response_model=ContractRead,
-    dependencies=[Depends(admin_or_staff)],
-)
-def transfer(
-    contract_id: UUID,
-    payload: TransferBedRequest,
-    service: ContractService = Depends(get_contract_service),
-):
-    return service.transfer(contract_id, payload)
 
 
 @router.post(

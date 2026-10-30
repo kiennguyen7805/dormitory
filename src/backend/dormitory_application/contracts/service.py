@@ -2,12 +2,10 @@ from datetime import date
 from uuid import UUID
 
 from .schemas import (
-    AssignBedRequest,
-    BedAssignmentRead,
+    AssignRoomRequest,
     ContractRead,
     HousingApplicationCreate,
     HousingApplicationRead,
-    TransferBedRequest,
 )
 
 
@@ -39,8 +37,8 @@ class ContractService:
             application_id, reviewer_id, "Rejected", reason.strip()
         )
 
-    def assign_bed(self, application_id: UUID, data: AssignBedRequest) -> ContractRead:
-        return self.repository.assign_bed(application_id, data)
+    def assign_room(self, application_id: UUID, data: AssignRoomRequest) -> ContractRead:
+        return self.repository.assign_room(application_id, data)
 
     def list_contracts(self, user_id: UUID, role: str) -> list[ContractRead]:
         return self.repository.list_contracts(user_id, role)
@@ -50,14 +48,6 @@ class ContractService:
 
     def get_my_contract(self, student_id: UUID) -> ContractRead | None:
         return self.repository.get_my_contract(student_id)
-
-    def assignment_history(
-        self, contract_id: UUID, user_id: UUID, role: str
-    ) -> list[BedAssignmentRead]:
-        return self.repository.assignment_history(contract_id, user_id, role)
-
-    def transfer(self, contract_id: UUID, data: TransferBedRequest) -> ContractRead:
-        return self.repository.transfer(contract_id, data)
 
     def terminate(self, contract_id: UUID, termination_date: date) -> ContractRead:
         return self.repository.terminate(contract_id, termination_date)
