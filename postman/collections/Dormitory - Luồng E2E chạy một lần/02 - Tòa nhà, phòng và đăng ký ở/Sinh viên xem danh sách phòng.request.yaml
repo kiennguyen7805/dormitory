@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/rooms?buildingId={{buildingId}}"
+method: GET
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{studentToken}}
+queryParams:
+  buildingId: "{{buildingId}}"
+scripts:
+  - type: afterResponse
+    code: pm.test('HTTP 200', () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 3000

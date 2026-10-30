@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/bills/generate"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{staffToken}}
+body:
+  type: json
+  content: |-
+    {
+      "room_id": "{{roomId}}",
+      "period_start": "{{today}}",
+      "period_end": "{{periodEnd}}",
+      "issued_date": "{{today}}",
+      "due_date": "{{dueDate}}",
+      "idempotency_key": "{{billKey}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 201', () => pm.response.to.have.status(201));
+      const b=pm.response.json(); pm.collectionVariables.set('billId',b.id); pm.test('Hóa đơn có hai khoản tiện ích',()=>pm.expect(b.items).to.have.length(2)); pm.test('Tổng tiền lớn hơn 0',()=>pm.expect(b.total_amount).to.be.above(0));
+    language: text/javascript
+order: 1000

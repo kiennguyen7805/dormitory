@@ -1,0 +1,9 @@
+$kind: collection
+description: |-
+  29. Build và chạy API, PostgreSQL, Adminer bằng Docker Compose (Plan!B39)
+  30. Chạy migration và kiểm tra /readyz, Swagger trên môi trường demo (Plan!B40)
+  31. Dùng database mẫu, kiểm thử đầu cuối và lưu hướng dẫn chạy (Plan!B41)
+  32. Demo: sinh viên đăng ký → cán bộ duyệt → hợp đồng phòng → chỉ số → hóa đơn phòng → trả đủ (Plan!B42)
+
+  Mở bất kỳ request → Send. Mỗi request độc lập, kể cả ca lỗi. Có thể Run folder hoặc toàn collection, 1 iteration.
+order: 8000

@@ -1,0 +1,9 @@
+$kind: collection
+order: 4000
+description: |-
+  13. Chỉ phát hành khi phòng đủ chỉ số điện và nước của cùng kỳ (Plan!B19)
+  14. Phát đúng một hóa đơn cho phòng/kỳ, gồm hai dòng điện và nước (Plan!B20)
+  15. Sinh viên từng ở phòng trong kỳ xem chung hóa đơn phòng (Plan!B21)
+  16. Chặn phát hành trùng và kiểm tra khóa idempotency (Plan!B22)
+
+  Mở bất kỳ request → Send. Mỗi request độc lập, kể cả ca lỗi. Có thể Run folder hoặc toàn collection, 1 iteration.

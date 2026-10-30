@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/meter-readings"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{staffToken}}
+body:
+  type: json
+  content: |-
+    {
+      "meter_id": "{{waterMeterId}}",
+      "period_start": "{{today}}",
+      "period_end": "{{periodEnd}}",
+      "previous_reading": 0,
+      "current_reading": 10
+    }
+scripts:
+  - type: afterResponse
+    code: pm.test('HTTP 201', () => pm.response.to.have.status(201));
+    language: text/javascript
+order: 8000

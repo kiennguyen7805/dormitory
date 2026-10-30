@@ -1,0 +1,9 @@
+$kind: collection
+order: 2000
+description: |-
+  5. Sinh viên chọn phòng, gửi đăng ký theo kỳ và theo dõi trạng thái (Plan!B9)
+  6. Staff/Admin duyệt hoặc từ chối đăng ký, có lý do từ chối (Plan!B10)
+  7. Staff/Admin lập hợp đồng gắn phòng đã đăng ký; kiểm tra chỗ trống (Plan!B11)
+  8. Sinh viên xem hợp đồng; Staff/Admin có thể chấm dứt hợp đồng (Plan!B12)
+
+  Mở bất kỳ request → Send. Mỗi request độc lập, kể cả ca lỗi. Có thể Run folder hoặc toàn collection, 1 iteration.

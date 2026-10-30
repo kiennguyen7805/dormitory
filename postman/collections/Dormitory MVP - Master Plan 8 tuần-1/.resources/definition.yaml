@@ -1,0 +1,480 @@
+$kind: collection
+name: Dormitory MVP - Master Plan 8 tuần
+description: Đủ 8 tuần, 32 công việc từ sheet Plan. Chọn No Environment, mở bất kỳ request → Send. Tự lấy token, tạo dữ liệu phụ thuộc riêng mỗi lần. Có thể Run toàn collection, gồm ca lỗi dự kiến 4xx. Cần Docker/gateway và tài khoản demo đã seed. Mỗi Send có thể thêm dữ liệu demo. Tuần 7/8 kiểm tra HTTP phục vụ tài liệu/Docker, không build hoặc chỉnh tài liệu qua HTTP. Checklist Excel còn logout nhưng backend đã bỏ endpoint này. Người xác nhận thanh toán lưu nội bộ, BillRead chưa công khai trường này.
+variables:
+  baseUrl: http://localhost:8081
+  adminEmail: admin@dormitory.local
+  adminPassword: Admin@123
+  staffEmail: staff@dormitory.local
+  staffPassword: Staff@123
+  studentPassword: Student@123
+  access_token: ""
+  refresh_token: ""
+  runTag: ""
+  today: ""
+  contractEnd: ""
+  dueDate: ""
+  buildingCode: ""
+  termCode: ""
+  billKey: ""
+  studentEmail: ""
+  studentCode: ""
+  adminToken: ""
+  adminRefreshToken: ""
+  _auth_admin: ""
+  staffToken: ""
+  staffRefreshToken: ""
+  _auth_staff: ""
+  studentId: ""
+  studentToken: ""
+  studentRefreshToken: ""
+scripts:
+  - type: http:beforeRequest
+    code: |-
+      (async () => {
+      const scenarios = {
+        "01.01 - API đang sống": {
+          "role": null,
+          "setup": "none"
+        },
+        "01.02 - PostgreSQL và migration sẵn sàng": {
+          "role": null,
+          "setup": "none"
+        },
+        "02.01 - Sinh viên đăng ký tài khoản": {
+          "role": null,
+          "setup": "none"
+        },
+        "02.02 - Đăng nhập admin": {
+          "role": null,
+          "setup": "none"
+        },
+        "02.03 - Xem phiên admin": {
+          "role": "admin",
+          "setup": "none"
+        },
+        "02.04 - Đăng nhập staff": {
+          "role": null,
+          "setup": "none"
+        },
+        "02.05 - Xem phiên staff": {
+          "role": "staff",
+          "setup": "none"
+        },
+        "02.06 - Đăng nhập student": {
+          "role": null,
+          "setup": "student"
+        },
+        "02.07 - Xem phiên student": {
+          "role": "student",
+          "setup": "none"
+        },
+        "02.08 - Làm mới token": {
+          "role": null,
+          "setup": "refresh"
+        },
+        "02.09 - Admin xem người dùng": {
+          "role": "admin",
+          "setup": "none"
+        },
+        "02.10 - Admin tạo tài khoản Staff": {
+          "role": "admin",
+          "setup": "none"
+        },
+        "02.11 - Admin cập nhật tài khoản mẫu": {
+          "role": "admin",
+          "setup": "managed-user"
+        },
+        "02.12 - Sinh viên xem hồ sơ": {
+          "role": "student",
+          "setup": "none"
+        },
+        "02.13 - Sinh viên cập nhật hồ sơ": {
+          "role": "student",
+          "setup": "none"
+        },
+        "02.14 - Staff xem sinh viên có phân trang": {
+          "role": "staff",
+          "setup": "none"
+        },
+        "03.01 - Admin thêm tòa": {
+          "role": "admin",
+          "setup": "none"
+        },
+        "03.02 - Staff thêm phòng": {
+          "role": "staff",
+          "setup": "building"
+        },
+        "04.01 - Sinh viên xem tòa": {
+          "role": "student",
+          "setup": "none"
+        },
+        "04.02 - Sinh viên xem phòng theo tòa": {
+          "role": "student",
+          "setup": "room"
+        },
+        "04.03 - Phòng tự sinh hai công tơ": {
+          "role": "staff",
+          "setup": "room"
+        },
+        "05.01 - Sinh viên gửi đăng ký chọn phòng": {
+          "role": "student",
+          "setup": "room"
+        },
+        "05.02 - Sinh viên theo dõi đơn": {
+          "role": "student",
+          "setup": "application"
+        },
+        "06.01 - Staff duyệt đơn": {
+          "role": "staff",
+          "setup": "application"
+        },
+        "06.02 - Staff từ chối có lý do": {
+          "role": "staff",
+          "setup": "application"
+        },
+        "07.01 - Lập hợp đồng gắn phòng đăng ký": {
+          "role": "staff",
+          "setup": "approved"
+        },
+        "08.01 - Sinh viên xem hợp đồng": {
+          "role": "student",
+          "setup": "contract"
+        },
+        "08.02 - Staff xem hợp đồng": {
+          "role": "staff",
+          "setup": "contract"
+        },
+        "08.03 - Staff chấm dứt hợp đồng mẫu": {
+          "role": "staff",
+          "setup": "contract"
+        },
+        "09.01 - Danh sách hai tiện ích": {
+          "role": "staff",
+          "setup": "none"
+        },
+        "09.02 - Danh sách công tơ phòng": {
+          "role": "staff",
+          "setup": "room"
+        },
+        "10.01 - Thiết lập biểu giá điện": {
+          "role": "staff",
+          "setup": "tariff-slot",
+          "kind": "electricity"
+        },
+        "10.02 - Nhập chỉ số điện": {
+          "role": "staff",
+          "setup": "meters"
+        },
+        "10.03 - Thiết lập biểu giá nước": {
+          "role": "staff",
+          "setup": "tariff-slot",
+          "kind": "water"
+        },
+        "10.04 - Nhập chỉ số nước": {
+          "role": "staff",
+          "setup": "meters"
+        },
+        "11.01 - [400] Chặn chỉ số giảm": {
+          "role": "staff",
+          "setup": "meters"
+        },
+        "11.02 - [409] Chặn chỉ số trùng kỳ": {
+          "role": "staff",
+          "setup": "electricity-reading"
+        },
+        "12.01 - Kiểm tra tiền và snapshot giá": {
+          "role": "staff",
+          "setup": "readings"
+        },
+        "13.01 - [422] Không phát hành khi thiếu chỉ số nước": {
+          "role": "staff",
+          "setup": "electricity-reading"
+        },
+        "14.01 - Phát hành hóa đơn phòng-kỳ": {
+          "role": "staff",
+          "setup": "readings"
+        },
+        "15.01 - Sinh viên thứ nhất xem hóa đơn": {
+          "role": "student",
+          "setup": "bill"
+        },
+        "15.02 - Sinh viên thứ hai xem cùng hóa đơn": {
+          "role": "student2",
+          "setup": "shared-bill"
+        },
+        "16.01 - Gửi lại cùng key trả cùng hóa đơn": {
+          "role": "staff",
+          "setup": "bill"
+        },
+        "16.02 - [409] Cùng phòng-kỳ, key mới": {
+          "role": "staff",
+          "setup": "bill"
+        },
+        "16.03 - [409] Cùng key, dữ liệu khác": {
+          "role": "staff",
+          "setup": "bill"
+        },
+        "17.01 - Staff xác nhận trả đủ": {
+          "role": "staff",
+          "setup": "bill"
+        },
+        "18.01 - Xem thông tin xác nhận thanh toán": {
+          "role": "staff",
+          "setup": "paid"
+        },
+        "19.01 - [409] Chặn xác nhận lần hai": {
+          "role": "staff",
+          "setup": "paid"
+        },
+        "19.02 - Sinh viên xem đã trả": {
+          "role": "student",
+          "setup": "paid"
+        },
+        "20.01 - Đối chiếu tổng tiền và hai dòng điện nước": {
+          "role": "staff",
+          "setup": "bill"
+        },
+        "21.01 - Hai sinh viên cùng phòng, một hóa đơn chung": {
+          "role": "student2",
+          "setup": "shared-bill"
+        },
+        "22.01 - [409] Phòng đủ hai chỗ không nhận người thứ ba": {
+          "role": "staff",
+          "setup": "full-room"
+        },
+        "22.02 - [409] Đơn chưa duyệt không lập hợp đồng": {
+          "role": "staff",
+          "setup": "application"
+        },
+        "22.03 - [409] Không lập trùng hợp đồng": {
+          "role": "staff",
+          "setup": "contract"
+        },
+        "23.01 - Admin được xem người dùng": {
+          "role": "admin",
+          "setup": "none"
+        },
+        "23.02 - Staff được xem công tơ": {
+          "role": "staff",
+          "setup": "none"
+        },
+        "23.03 - [403] Staff không được thêm tòa": {
+          "role": "staff",
+          "setup": "none"
+        },
+        "23.04 - [403] Student không được thêm tòa": {
+          "role": "student",
+          "setup": "none"
+        },
+        "23.05 - [403] Student không được phát hành hóa đơn": {
+          "role": "student",
+          "setup": "room"
+        },
+        "23.06 - [403] Student không được xem hóa đơn phòng khác": {
+          "role": "outsider",
+          "setup": "bill"
+        },
+        "23.07 - [401] Không có token": {
+          "role": null,
+          "setup": "none"
+        },
+        "24.01 - [400] Chỉ số giảm": {
+          "role": "staff",
+          "setup": "meters"
+        },
+        "24.02 - [409] Chỉ số trùng": {
+          "role": "staff",
+          "setup": "electricity-reading"
+        },
+        "24.03 - [422] Thiếu chỉ số": {
+          "role": "staff",
+          "setup": "electricity-reading"
+        },
+        "24.04 - [409] Thanh toán lặp": {
+          "role": "staff",
+          "setup": "paid"
+        },
+        "25.01 - OpenAPI đúng phạm vi MVP": {
+          "role": null,
+          "setup": "none"
+        },
+        "25.02 - Trang Swagger": {
+          "role": null,
+          "setup": "none"
+        },
+        "26.01 - Luồng đăng ký đến trả đủ bằng một Send": {
+          "role": "student",
+          "setup": "paid"
+        },
+        "27.01 - Ví dụ lỗi đăng nhập và Problem JSON": {
+          "role": null,
+          "setup": "none"
+        },
+        "28.01 - Rà endpoint và ba vai trò": {
+          "role": "admin",
+          "setup": "none"
+        },
+        "29.01 - Gateway Docker đang sống": {
+          "role": null,
+          "setup": "none"
+        },
+        "30.01 - API và PostgreSQL sẵn sàng": {
+          "role": null,
+          "setup": "none"
+        },
+        "30.02 - Swagger môi trường demo": {
+          "role": null,
+          "setup": "none"
+        },
+        "31.01 - Kiểm thử đầu cuối trên dữ liệu demo mới": {
+          "role": "student",
+          "setup": "paid"
+        },
+        "32.01 - Demo trọn luồng và hai sinh viên xem đã trả": {
+          "role": "student2",
+          "setup": "shared-paid"
+        }
+      };
+      // Shared setup: every Send creates a fresh, independent scenario.
+      const spec = scenarios[pm.info.requestName];
+      if (!spec) throw new Error('Missing scenario: '+pm.info.requestName);
+      const cv=pm.collectionVariables, v=pm.variables;
+      const set=(k,x)=>{cv.set(k,x);v.set(k,x);return x;};
+      ['baseUrl','adminEmail','adminPassword','staffEmail','staffPassword','studentPassword'].forEach(k=>v.set(k,cv.get(k)));
+      const base=String(v.get('baseUrl')).replace(/\/+$/,'');
+      v.set('baseUrl',base);
+      const uid=()=>v.replaceIn('{{$randomUUID}}').replace(/-/g,'');
+      const tag=uid().slice(0,16);
+      const day=n=>{const d=new Date();d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);};
+      set('runTag',tag);set('today',day(0));set('contractEnd',day(90));set('dueDate',day(15));
+      set('buildingCode','P'+tag);set('termCode','PM-'+tag);set('billKey','pm-'+tag);
+      set('studentEmail','pm.'+tag+'@example.com');set('studentCode',uid().slice(0,8).toUpperCase());
+      const tokens={};
+      const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+      async function call(method,path,role,body,expected=200){
+        const header={'Content-Type':'application/json'};
+        if(role) header.Authorization='Bearer '+tokens[role];
+        const request={url:base+'/api/v1'+path,method,header};
+        if(body!==undefined) request.body={mode:'raw',raw:JSON.stringify(body)};
+        let r;
+        for(let i=0;i<3;i++){r=await new Promise((resolve,reject)=>pm.sendRequest(request,(err,response)=>err?reject(err):resolve(response)));if(r.code!==429)break;await sleep(1200);}
+        if(r.code!==expected)throw new Error('Setup '+method+' '+path+': expected '+expected+', received '+r.code+': '+r.text());
+        console.log('Setup:',method,path,r.code);
+        return r.json();
+      }
+      async function login(role){
+        if(tokens[role])return;
+        const email=v.get(role+'Email'),password=v.get(role+'Password')||v.get('studentPassword');
+        const key='_auth_'+role,signature=base+'|'+email+'|'+password;
+        let cache;try{cache=JSON.parse(cv.get(key)||'null');}catch(_){}
+        if(['admin','staff'].includes(role)&&cache&&cache.signature===signature&&cache.expires>Date.now()+30000){
+          tokens[role]=cache.token;return;
+        }
+        const b=await call('POST','/auth/login',null,{email,password});
+        tokens[role]=b.access_token;set(role+'Token',b.access_token);set(role+'RefreshToken',b.refresh_token);
+        if(['admin','staff'].includes(role))cv.set(key,JSON.stringify({signature,token:b.access_token,expires:Date.now()+Number(b.expires_in)*1000}));
+      }
+      async function student(role='student'){
+        if(tokens[role])return;
+        if(role!=='student'){set(role+'Email','pm.'+role+'.'+uid().slice(0,16)+'@example.com');set(role+'Code',uid().slice(0,8).toUpperCase());}
+        const b=await call('POST','/auth/register',null,{email:v.get(role+'Email'),password:v.get('studentPassword'),full_name:'Postman '+role+' '+tag,student_code:v.get(role==='student'?'studentCode':role+'Code'),age:20},201);
+        set(role+'Id',b.id);await login(role);
+      }
+      let buildingReady=false,roomReady=false,metersReady=false;
+      async function building(){
+        if(buildingReady)return;
+        await login('admin');
+        const b=await call('POST','/buildings','admin',{code:v.get('buildingCode'),name:'Postman '+tag,address:'Demo',floors:2},201);
+        set('buildingId',b.id);buildingReady=true;
+      }
+      async function room(){
+        if(roomReady)return;
+        await building();await login('staff');
+        const b=await call('POST','/rooms','staff',{building_id:v.get('buildingId'),code:'101',floor:1,capacity:2,monthly_rate:500000},201);
+        set('roomId',b.id);roomReady=true;
+      }
+      async function application(role='student',approve=false,assign=false){
+        await room();await student(role);
+        const a=await call('POST','/housing-applications',role,{term_code:v.get('termCode'),room_id:v.get('roomId')},201);
+        set('applicationId',a.id);
+        if(approve||assign)await call('POST','/housing-applications/'+a.id+'/approve','staff');
+        if(assign){const c=await call('POST','/contracts/'+a.id+'/assign-room','staff',{start_date:v.get('today'),end_date:v.get('contractEnd')},201);set('contractId',c.id);}
+      }
+      async function utilities(){
+        await login('staff');
+        const rows=await call('GET','/utilities','staff');
+        for(const k of ['electricity','water']){const u=rows.find(x=>x.code===k.toUpperCase());if(!u)throw new Error('Missing seeded utility '+k);set(k+'Id',u.id);}
+      }
+      async function tariffSlot(k){
+        const rows=await call('GET','/utility-tariffs?utility_id='+v.get(k+'Id'),'staff');
+        const d=new Date((rows.map(x=>x.effective_from).sort()[0]||v.get('today'))+'T00:00:00Z');
+        d.setUTCDate(d.getUTCDate()-1);return d.toISOString().slice(0,10);
+      }
+      async function meters(){
+        if(metersReady)return;
+        await room();await utilities();
+        const rows=await call('GET','/meters?room_id='+v.get('roomId'),'staff');
+        for(const [k,price]of [['electricity',1000],['water',15000]]){
+          const m=rows.find(x=>x.utility_code===k.toUpperCase());if(!m)throw new Error('Missing automatic meter '+k);set(k+'MeterId',m.id);
+          const tariffs=await call('GET','/utility-tariffs?utility_id='+v.get(k+'Id'),'staff'),today=v.get('today');
+          let t=tariffs.find(x=>x.is_active&&x.effective_from<=today&&(!x.effective_to||x.effective_to>=today));
+          if(!t)t=await call('POST','/utility-tariffs','staff',{utility_id:v.get(k+'Id'),name:'PM '+k+' '+tag,effective_from:today,effective_to:today,calculation_type:'Flat',tiers:[{tier_order:1,from_quantity:0,to_quantity:null,unit_price:price}]},201);
+          set(k+'TariffId',t.id);
+        }
+        metersReady=true;
+      }
+      async function readings(water=true){
+        await meters();
+        for(const [k,amount]of [['electricity',80],...(water?[['water',10]]:[])]){
+          const b=await call('POST','/meter-readings','staff',{meter_id:v.get(k+'MeterId'),period_start:v.get('today'),period_end:v.get('today'),previous_reading:0,current_reading:amount},201);
+          set(k+'ReadingId',b.id);set(k+'Amount',b.calculated_amount);
+        }
+      }
+      async function bill(shared=false,paid=false){
+        await application('student',true,true);
+        if(shared)await application('student2',true,true);
+        await readings();
+        const b=await call('POST','/bills/generate','staff',{room_id:v.get('roomId'),period_start:v.get('today'),period_end:v.get('today'),issued_date:v.get('today'),due_date:v.get('dueDate'),idempotency_key:v.get('billKey')},201);
+        set('billId',b.id);
+        if(shared){const rows=await call('GET','/bills?room_id='+v.get('roomId'),'student');set('firstStudentBillIds',JSON.stringify(rows.map(x=>x.id)));}
+        if(paid)await call('POST','/bills/'+b.id+'/confirm-payment','staff',{method:'Cash',reference:'PM-'+tag});
+      }
+      try{
+        switch(spec.setup){
+          case 'none':break;
+          case 'student':await student();break;
+          case 'refresh':await student();set('refresh_token',v.get('studentRefreshToken'));break;
+          case 'managed-user':{
+            await login('admin');const b=await call('POST','/users','admin',{email:'managed.'+tag+'@example.com',full_name:'PM Staff',password:'Staff@123',role:'Staff'},201);set('managedUserId',b.id);break;
+          }
+          case 'building':await building();break;
+          case 'room':await room();break;
+          case 'application':await application();break;
+          case 'approved':await application('student',true);break;
+          case 'contract':await application('student',true,true);break;
+          case 'tariff-slot':await utilities();set('tariffDate',await tariffSlot(spec.kind));break;
+          case 'meters':await meters();break;
+          case 'electricity-reading':await readings(false);break;
+          case 'readings':await readings();break;
+          case 'bill':await bill();break;
+          case 'paid':await bill(false,true);break;
+          case 'shared-bill':await bill(true);break;
+          case 'shared-paid':await bill(true,true);break;
+          case 'full-room':await application('student',true,true);await application('student2',true,true);await application('student3',true);break;
+          default:throw new Error('Unknown setup '+spec.setup);
+        }
+        if(spec.role){
+          if(['student','student2','outsider'].includes(spec.role))await student(spec.role);else await login(spec.role);
+          set('access_token',tokens[spec.role]);
+        }
+      }catch(error){
+        pm.test('Setup prerequisites succeeded',()=>{throw error;});
+        console.error(error.message);
+        pm.execution.skipRequest();
+        throw error;
+      }
+
+
+      })().catch(error=>{pm.test('Setup completed',()=>{throw error;});console.error(error.message);if(pm.execution && pm.execution.skipRequest)pm.execution.skipRequest();});
+    language: text/javascript

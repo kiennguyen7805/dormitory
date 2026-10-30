@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/gateway/healthz"
+method: GET
+headers:
+  Content-Type: application/json
+scripts:
+  - type: beforeRequest
+    code: |-
+      const d=new Date(); const iso=d.toISOString().slice(0,10); const end=new Date(d); end.setDate(end.getDate()+30); const due=new Date(d); due.setDate(due.getDate()+15);
+      const tag=Date.now().toString().slice(-8);
+      pm.collectionVariables.set('runTag',tag); pm.collectionVariables.set('today',iso); pm.collectionVariables.set('periodEnd',end.toISOString().slice(0,10)); pm.collectionVariables.set('dueDate',due.toISOString().slice(0,10));
+      pm.collectionVariables.set('studentEmail','pm.'+tag+'@example.com'); pm.collectionVariables.set('studentCode','PM'+tag); pm.collectionVariables.set('buildingCode','P'+tag); pm.collectionVariables.set('roomCode','R'+tag); pm.collectionVariables.set('billKey','pm-'+tag);
+      ['adminToken','staffToken','studentToken','buildingId','roomId','applicationId','contractId','electricityId','waterId','electricityMeterId','waterMeterId','electricityTariffId','waterTariffId','billId'].forEach(k=>pm.collectionVariables.unset(k));
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      pm.collectionVariables.set('ready','yes');
+    language: text/javascript
+order: 1000

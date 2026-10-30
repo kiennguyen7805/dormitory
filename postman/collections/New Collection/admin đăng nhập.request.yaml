@@ -1,0 +1,18 @@
+$kind: http-request
+description: ""
+url: "{{baseURL}}/api/v1/auth/login"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \r
+
+    \    \"email\":\"admin@dormitory.local\",\r
+
+    \    \"password\":\"Admin@123\"\r
+
+    \    \r
+
+    }"
+order: 1791777476286

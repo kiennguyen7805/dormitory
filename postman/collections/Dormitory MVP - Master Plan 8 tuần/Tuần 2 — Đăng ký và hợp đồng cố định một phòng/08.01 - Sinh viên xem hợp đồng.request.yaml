@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  **Kế hoạch:** Plan!B12 — Sinh viên xem hợp đồng; Staff/Admin có thể chấm dứt hợp đồng
+
+  **GET /api/v1/contracts/me** · HTTP dự kiến **200**
+
+  Vai trò: student. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (contract); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: '{{baseUrl}}/api/v1/contracts/me'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: '{{access_token}}'
+order: 6000
+scripts:
+- type: afterResponse
+  code: |-
+    pm.test('HTTP 200',()=>pm.response.to.have.status(200));
+    if(pm.response.code===200){
+    pm.test('Đúng hợp đồng',()=>pm.expect(pm.response.json().id).to.eql(pm.variables.get('contractId')));
+    }
+  language: text/javascript

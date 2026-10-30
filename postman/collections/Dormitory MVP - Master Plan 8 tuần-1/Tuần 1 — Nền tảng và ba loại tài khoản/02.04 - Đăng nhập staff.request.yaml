@@ -1,0 +1,35 @@
+$kind: http-request
+description: |-
+  **Kế hoạch:** Plan!B5 — Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền
+
+  **POST /api/v1/auth/login** · HTTP dự kiến **200**
+
+  Vai trò: Không cần token. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: "{{baseUrl}}/api/v1/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{staffEmail}}",
+      "password": "{{staffPassword}}"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200',()=>pm.response.to.have.status(200));
+      if(pm.response.code===200){
+      const b=pm.response.json();
+      pm.test('Có access_token và refresh_token',()=>{pm.expect(b.access_token).to.be.a('string').and.not.empty;pm.expect(b.refresh_token).to.be.a('string').and.not.empty;});
+      pm.collectionVariables.set('access_token',b.access_token);
+      pm.collectionVariables.set('refresh_token',b.refresh_token);
+      pm.test('Đúng vai trò',()=>pm.expect(b.user.role).to.eql('Staff'));
+      }
+    language: text/javascript
+order: 6000

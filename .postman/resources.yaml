@@ -1,0 +1,16 @@
+# Use this workspace to collaborate
+workspace:
+  id: aeeafc77-0797-4984-a125-ead3dd431a9f
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
+cloudResources:
+  collections:
+    ../postman/collections/Dormitory - Luồng E2E chạy một lần: 60d7e00d-ab8d-422b-a66e-e281a7548266
+    ../postman/collections/Dormitory MVP - Master Plan 8 tuần-1: 3adba5db-3369-4adb-a6cc-45c2011c8538
+
+# All resources in the `postman/` folder are automatically registered in Local View.
+# Point to additional files outside the `postman/` folder to register them individually. Example:
+#localResources:
+#  collections:
+#    - ../tests/E2E Test Collection/

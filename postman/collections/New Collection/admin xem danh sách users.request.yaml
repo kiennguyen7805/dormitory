@@ -1,0 +1,9 @@
+$kind: http-request
+description: ""
+url: "{{baseURL}}/api/v1/users"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{json_web_token_0rtf}}"
+order: 4424686448538612

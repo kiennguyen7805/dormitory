@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/utilities"
+method: GET
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{staffToken}}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      const u=pm.response.json(); pm.collectionVariables.set('electricityId',u.find(x=>x.code==='ELECTRICITY').id); pm.collectionVariables.set('waterId',u.find(x=>x.code==='WATER').id);
+    language: text/javascript
+order: 1000

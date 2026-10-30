@@ -1,0 +1,35 @@
+$kind: http-request
+description: |-
+  **Kế hoạch:** Plan!B5 — Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền
+
+  **POST /api/v1/users** · HTTP dự kiến **201**
+
+  Vai trò: admin. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: "{{baseUrl}}/api/v1/users"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "staff.{{runTag}}@example.com",
+      "full_name": "PM Staff",
+      "password": "Staff@123",
+      "role": "Staff"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{access_token}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 201',()=>pm.response.to.have.status(201));
+      if(pm.response.code===201){
+
+      }
+    language: text/javascript
+order: 12000

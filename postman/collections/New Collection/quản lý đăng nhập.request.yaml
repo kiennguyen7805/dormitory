@@ -1,0 +1,14 @@
+$kind: http-request
+description: ""
+url: "{{baseURL}}/api/v1/auth/login"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"email\": \"quanly01@gmail.com\",\r
+
+    \  \"password\": \"quanly01@123\"\r
+
+    }"
+order: 4503530142241841

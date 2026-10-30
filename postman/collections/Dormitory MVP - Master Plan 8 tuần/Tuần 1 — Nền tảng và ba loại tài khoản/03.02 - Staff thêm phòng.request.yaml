@@ -1,0 +1,36 @@
+$kind: http-request
+description: |-
+  **Kế hoạch:** Plan!B6 — Admin tạo tòa; Admin/Staff tạo phòng với sức chứa và giá ở
+
+  **POST /api/v1/rooms** · HTTP dự kiến **201**
+
+  Vai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (building); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: '{{baseUrl}}/api/v1/rooms'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    token: '{{access_token}}'
+order: 18000
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "building_id": "{{buildingId}}",
+      "code": "101",
+      "floor": 1,
+      "capacity": 2,
+      "monthly_rate": 500000
+    }
+scripts:
+- type: afterResponse
+  code: |-
+    pm.test('HTTP 201',()=>pm.response.to.have.status(201));
+    if(pm.response.code===201){
+
+    }
+  language: text/javascript

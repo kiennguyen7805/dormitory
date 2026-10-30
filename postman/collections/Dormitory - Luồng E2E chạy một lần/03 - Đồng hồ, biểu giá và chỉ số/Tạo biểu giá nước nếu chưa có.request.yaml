@@ -1,0 +1,34 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/utility-tariffs"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{staffToken}}
+body:
+  type: json
+  content: |-
+    {
+      "utility_id": "{{waterId}}",
+      "name": "PM Water {{runTag}}",
+      "effective_from": "{{today}}",
+      "effective_to": null,
+      "calculation_type": "Flat",
+      "tiers": [
+        {
+          "tier_order": 1,
+          "from_quantity": 0,
+          "to_quantity": null,
+          "unit_price": 15000
+        }
+      ]
+    }
+scripts:
+  - type: beforeRequest
+    code: if(pm.collectionVariables.get('waterTariffId')) pm.execution.skipRequest();
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 201', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('waterTariffId',pm.response.json().id);
+    language: text/javascript
+order: 6000

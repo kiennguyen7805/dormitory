@@ -1,0 +1,14 @@
+$kind: collection
+description: Chạy toàn bộ collection bằng Collection Runner theo đúng thứ tự. Cần bật Docker Compose và seed dữ liệu mặc định. Mỗi lần chạy tạo sinh viên, tòa nhà, phòng và mã hóa đơn mới. Biểu giá đang hiệu lực được tái sử dụng nếu có.
+variables:
+  baseUrl: http://localhost:8081
+  runTag: ""
+  today: ""
+  periodEnd: ""
+  dueDate: ""
+  studentEmail: ""
+  studentCode: ""
+  buildingCode: ""
+  roomCode: ""
+  billKey: ""
+  ready: ""

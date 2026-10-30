@@ -1,0 +1,37 @@
+$kind: http-request
+description: |-
+  **Kế hoạch:** Plan!B22 — Chặn phát hành trùng và kiểm tra khóa idempotency
+
+  **POST /api/v1/bills/generate** · HTTP dự kiến **201**
+
+  Vai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (bill); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: '{{baseUrl}}/api/v1/bills/generate'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    token: '{{access_token}}'
+order: 5000
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "room_id": "{{roomId}}",
+      "period_start": "{{today}}",
+      "period_end": "{{today}}",
+      "issued_date": "{{today}}",
+      "due_date": "{{dueDate}}",
+      "idempotency_key": "{{billKey}}"
+    }
+scripts:
+- type: afterResponse
+  code: |-
+    pm.test('HTTP 201',()=>pm.response.to.have.status(201));
+    if(pm.response.code===201){
+    pm.test('Cùng billId',()=>pm.expect(pm.response.json().id).to.eql(pm.variables.get('billId')));
+    }
+  language: text/javascript

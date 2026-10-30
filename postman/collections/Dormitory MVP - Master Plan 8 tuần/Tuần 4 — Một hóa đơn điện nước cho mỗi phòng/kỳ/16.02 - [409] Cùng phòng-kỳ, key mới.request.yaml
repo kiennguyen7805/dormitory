@@ -1,0 +1,39 @@
+$kind: http-request
+description: |-
+  **Kế hoạch:** Plan!B22 — Chặn phát hành trùng và kiểm tra khóa idempotency
+
+  **POST /api/v1/bills/generate** · HTTP dự kiến **409** · errorCode **BILL_PERIOD_ALREADY_EXISTS**
+
+  Vai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (bill); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: '{{baseUrl}}/api/v1/bills/generate'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    token: '{{access_token}}'
+order: 6000
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "room_id": "{{roomId}}",
+      "period_start": "{{today}}",
+      "period_end": "{{today}}",
+      "issued_date": "{{today}}",
+      "due_date": "{{dueDate}}",
+      "idempotency_key": "other-{{runTag}}"
+    }
+scripts:
+- type: afterResponse
+  code: |-
+    pm.test('HTTP 409',()=>pm.response.to.have.status(409));
+    pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});
+    pm.test('errorCode BILL_PERIOD_ALREADY_EXISTS',()=>pm.expect(pm.response.json().errorCode).to.eql('BILL_PERIOD_ALREADY_EXISTS'));
+    if(pm.response.code===409){
+
+    }
+  language: text/javascript

@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  **Kế hoạch:** Plan!B10 — Staff/Admin duyệt hoặc từ chối đăng ký, có lý do từ chối
+
+  **POST /api/v1/housing-applications/{{applicationId}}/approve** · HTTP dự kiến **200**
+
+  Vai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (application); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: "{{baseUrl}}/api/v1/housing-applications/{{applicationId}}/approve"
+method: POST
+auth:
+  type: bearer
+  credentials:
+    token: "{{access_token}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200',()=>pm.response.to.have.status(200));
+      if(pm.response.code===200){
+      pm.test('Approved',()=>pm.expect(pm.response.json().status).to.eql('Approved'));
+      }
+    language: text/javascript
+order: 3000

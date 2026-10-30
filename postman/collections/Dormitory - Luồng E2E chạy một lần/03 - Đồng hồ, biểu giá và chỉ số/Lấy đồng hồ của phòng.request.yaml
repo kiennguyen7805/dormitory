@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/meters?room_id={{roomId}}"
+method: GET
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{staffToken}}
+queryParams:
+  room_id: "{{roomId}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      const m=pm.response.json(); pm.collectionVariables.set('electricityMeterId',m.find(x=>x.utility_code==='ELECTRICITY').id); pm.collectionVariables.set('waterMeterId',m.find(x=>x.utility_code==='WATER').id);
+    language: text/javascript
+order: 2000

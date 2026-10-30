@@ -1,0 +1,38 @@
+$kind: http-request
+description: |-
+  **Kế hoạch:** Plan!B16 — Chặn chỉ số giảm và chỉ số trùng công tơ/kỳ
+
+  **POST /api/v1/meter-readings** · HTTP dự kiến **400** · errorCode **VALIDATION_ERROR**
+
+  Vai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (meters); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: '{{baseUrl}}/api/v1/meter-readings'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    token: '{{access_token}}'
+order: 7000
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "meter_id": "{{electricityMeterId}}",
+      "period_start": "{{today}}",
+      "period_end": "{{today}}",
+      "previous_reading": 10,
+      "current_reading": 9
+    }
+scripts:
+- type: afterResponse
+  code: |-
+    pm.test('HTTP 400',()=>pm.response.to.have.status(400));
+    pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});
+    pm.test('errorCode VALIDATION_ERROR',()=>pm.expect(pm.response.json().errorCode).to.eql('VALIDATION_ERROR'));
+    if(pm.response.code===400){
+
+    }
+  language: text/javascript

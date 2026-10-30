@@ -1,0 +1,22 @@
+$kind: http-request
+description: ""
+url: "{{baseURL}}/api/v1/users"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"email\": \"quanly01@gmail.com\",\r
+
+    \  \"full_name\": \"Nguyễn Văn C\",\r
+
+    \  \"password\": \"quanly01@123\",\r
+
+    \  \"role\": \"Staff\"\r
+
+    }\r\n"
+auth:
+  type: bearer
+  credentials:
+    token: "{{json_web_token_0rtf}}"
+order: 4427207902803988

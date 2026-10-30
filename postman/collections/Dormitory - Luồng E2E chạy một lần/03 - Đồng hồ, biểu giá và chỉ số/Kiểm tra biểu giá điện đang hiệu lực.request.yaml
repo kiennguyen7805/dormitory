@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/utility-tariffs?utility_id={{electricityId}}"
+method: GET
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{staffToken}}
+queryParams:
+  utility_id: "{{electricityId}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      const rows=pm.response.json(); const today=pm.collectionVariables.get('today'); const found=rows.find(x=>x.effective_from<=today && (!x.effective_to || x.effective_to>=today)); if(found) pm.collectionVariables.set(pm.variables.get(''electricityTariffId''),found.id);
+    language: text/javascript
+order: 3000

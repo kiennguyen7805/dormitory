@@ -1,0 +1,37 @@
+$kind: http-request
+description: |-
+  **Kế hoạch:** Plan!B15 — Staff/Admin thiết lập biểu giá và nhập chỉ số theo kỳ cho phòng
+
+  **POST /api/v1/meter-readings** · HTTP dự kiến **201**
+
+  Vai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (meters); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: '{{baseUrl}}/api/v1/meter-readings'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    token: '{{access_token}}'
+order: 4000
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "meter_id": "{{electricityMeterId}}",
+      "period_start": "{{today}}",
+      "period_end": "{{today}}",
+      "previous_reading": 0,
+      "current_reading": 80
+    }
+scripts:
+- type: afterResponse
+  code: |-
+    pm.test('HTTP 201',()=>pm.response.to.have.status(201));
+    if(pm.response.code===201){
+    const b=pm.response.json();
+    pm.test('Tiêu thụ đúng, có snapshot, tiền không âm',()=>{pm.expect(Number(b.consumption)).to.eql(Number(b.current_reading)-Number(b.previous_reading));pm.expect(b.tariff_snapshot).to.be.an('object').and.not.empty;pm.expect(b.tariff_id).to.be.a('string');pm.expect(Number(b.calculated_amount)).to.be.at.least(0);});
+    }
+  language: text/javascript

@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  **Kế hoạch:** Plan!B17 — Kiểm tra tiền điện, nước và snapshot giá sau khi ghi chỉ số
+
+  **GET /api/v1/meter-readings?meter_id={{electricityMeterId}}** · HTTP dự kiến **200**
+
+  Vai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (readings); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: "{{baseUrl}}/api/v1/meter-readings?meter_id={{electricityMeterId}}"
+method: GET
+queryParams:
+  meter_id: "{{electricityMeterId}}"
+auth:
+  type: bearer
+  credentials:
+    token: "{{access_token}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200',()=>pm.response.to.have.status(200));
+      if(pm.response.code===200){
+      pm.test('Snapshot và tiền đúng',()=>{const b=pm.response.json()[0];pm.expect(b.tariff_snapshot).to.be.an('object').and.not.empty;pm.expect(Number(b.consumption)).to.eql(80);pm.expect(Number(b.calculated_amount)).to.eql(Number(pm.variables.get('electricityAmount')));});
+      }
+    language: text/javascript
+order: 9000

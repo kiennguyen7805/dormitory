@@ -1,0 +1,9 @@
+$kind: collection
+description: |-
+  1. Chạy FastAPI, PostgreSQL, Docker Compose và Alembic (Plan!B4)
+  2. Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền (Plan!B5)
+  3. Admin tạo tòa; Admin/Staff tạo phòng với sức chứa và giá ở (Plan!B6)
+  4. Phòng tự tạo vị trí ở và công tơ điện/nước; sinh viên xem danh sách phòng (Plan!B7)
+
+  Mở bất kỳ request → Send. Mỗi request độc lập, kể cả ca lỗi. Có thể Run folder hoặc toàn collection, 1 iteration.
+order: 1000

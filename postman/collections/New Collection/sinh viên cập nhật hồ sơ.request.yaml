@@ -1,0 +1,34 @@
+$kind: http-request
+description: ""
+url: "{{baseURL}}/api/v1/student-profile/me"
+method: PUT
+body:
+  type: json
+  content: "{\r
+
+    \  \"student_code\": \"23416789\",\r
+
+    \  \"faculty\": \"Công nghệ thông tin\",\r
+
+    \  \"cohort\": \"2023-2027\",\r
+
+    \  \"date_of_birth\": \"2005-10-12\",\r
+
+    \  \"gender\": \"Female\",\r
+
+    \  \"phone\": \"0321654987\",\r
+
+    \  \"address\": \"Hưng Yên\",\r
+
+    \  \"identity_number\": \"012345678912\",\r
+
+    \  \"emergency_contact_name\": \"Nguyễn Văn H\",\r
+
+    \  \"emergency_contact_phone\": \"0321456987\"\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: "{{json_web_token_0vhi}}"
+order: 4495575419314032

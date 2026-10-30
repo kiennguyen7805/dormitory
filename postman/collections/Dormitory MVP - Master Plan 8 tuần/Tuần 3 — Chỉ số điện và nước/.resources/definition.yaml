@@ -1,0 +1,9 @@
+$kind: collection
+order: 3000
+description: |-
+  9. Duy trì hai tiện ích điện và nước; mỗi phòng có một công tơ cho từng loại (Plan!B14)
+  10. Staff/Admin thiết lập biểu giá và nhập chỉ số theo kỳ cho phòng (Plan!B15)
+  11. Chặn chỉ số giảm và chỉ số trùng công tơ/kỳ (Plan!B16)
+  12. Kiểm tra tiền điện, nước và snapshot giá sau khi ghi chỉ số (Plan!B17)
+
+  Mở bất kỳ request → Send. Mỗi request độc lập, kể cả ca lỗi. Có thể Run folder hoặc toàn collection, 1 iteration.

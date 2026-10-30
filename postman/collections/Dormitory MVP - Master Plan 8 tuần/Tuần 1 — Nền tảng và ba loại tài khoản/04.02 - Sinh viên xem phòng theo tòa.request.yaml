@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  **Kế hoạch:** Plan!B7 — Phòng tự tạo vị trí ở và công tơ điện/nước; sinh viên xem danh sách phòng
+
+  **GET /api/v1/rooms?buildingId={{buildingId}}** · HTTP dự kiến **200**
+
+  Vai trò: student. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (room); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: '{{baseUrl}}/api/v1/rooms?buildingId={{buildingId}}'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: '{{access_token}}'
+order: 20000
+scripts:
+- type: afterResponse
+  code: |-
+    pm.test('HTTP 200',()=>pm.response.to.have.status(200));
+    if(pm.response.code===200){
+    pm.test('Phòng mẫu xuất hiện',()=>pm.expect(pm.response.json().some(x=>x.id===pm.variables.get('roomId'))).to.eql(true));
+    }
+  language: text/javascript

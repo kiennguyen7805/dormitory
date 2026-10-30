@@ -1,0 +1,9 @@
+$kind: collection
+description: |-
+  25. Cập nhật OpenAPI/Swagger cho API MVP; bỏ sơ đồ, chuyển phòng và giường công khai (Plan!B34)
+  26. Cập nhật Postman Collection cho luồng đăng ký đến thanh toán (Plan!B35)
+  27. Ghi ví dụ request/response, mã lỗi và cách chạy dữ liệu demo (Plan!B36)
+  28. Rà lại ba vai trò và endpoint theo checklist (Plan!B37)
+
+  Mở bất kỳ request → Send. Mỗi request độc lập, kể cả ca lỗi. Có thể Run folder hoặc toàn collection, 1 iteration.
+order: 7000

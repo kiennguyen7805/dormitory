@@ -1,0 +1,20 @@
+$kind: http-request
+description: ""
+url: "{{baseURL}}/api/v1/auth/register"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"email\": \"sinhvien11@gmail.com\",\r
+
+    \  \"full_name\": \"Nguyễn Văn A\",\r
+
+    \  \"password\": \"sinhvien1@123\",\r
+
+    \  \"student_code\": \"23416789\",\r
+
+    \  \"age\": 20\r
+
+    }"
+order: 1317789647998966

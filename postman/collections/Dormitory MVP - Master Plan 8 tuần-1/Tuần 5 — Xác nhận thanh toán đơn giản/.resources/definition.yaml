@@ -1,0 +1,9 @@
+$kind: collection
+description: |-
+  17. Staff/Admin xác nhận hóa đơn phòng đã thanh toán đủ (Plan!B24)
+  18. Lưu phương thức, mã tham chiếu, người và thời điểm xác nhận (Plan!B25)
+  19. Chặn xác nhận thanh toán lại; sinh viên xem trạng thái đã trả (Plan!B26)
+  20. Đối chiếu tổng tiền hóa đơn với hai dòng điện và nước (Plan!B27)
+
+  Mở bất kỳ request → Send. Mỗi request độc lập, kể cả ca lỗi. Có thể Run folder hoặc toàn collection, 1 iteration.
+order: 5000

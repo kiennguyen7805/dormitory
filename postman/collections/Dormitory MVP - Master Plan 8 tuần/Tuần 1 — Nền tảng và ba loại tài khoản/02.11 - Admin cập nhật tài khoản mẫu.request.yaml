@@ -1,0 +1,34 @@
+$kind: http-request
+description: |-
+  **Kế hoạch:** Plan!B5 — Giữ đúng ba vai trò Admin, Staff, Student; đăng nhập, đăng ký và phân quyền
+
+  **PUT /api/v1/users/{{managedUserId}}** · HTTP dự kiến **200**
+
+  Vai trò: admin. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (managed-user); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: '{{baseUrl}}/api/v1/users/{{managedUserId}}'
+method: PUT
+auth:
+  type: bearer
+  credentials:
+    token: '{{access_token}}'
+order: 13000
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "full_name": "PM Staff Updated",
+      "role": "Staff",
+      "is_active": true
+    }
+scripts:
+- type: afterResponse
+  code: |-
+    pm.test('HTTP 200',()=>pm.response.to.have.status(200));
+    if(pm.response.code===200){
+
+    }
+  language: text/javascript

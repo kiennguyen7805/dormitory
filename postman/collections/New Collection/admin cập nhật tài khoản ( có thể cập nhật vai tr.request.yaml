@@ -1,0 +1,21 @@
+$kind: http-request
+name: admin cập nhật tài khoản ( có thể cập nhật vai trò )
+description: ""
+url: "{{baseURL}}/api/v1/users/c9fc486e-b0e4-48dd-b4e3-10f4764fe659"
+method: PUT
+body:
+  type: json
+  content: "{\r
+
+    \  \"full_name\": \"Nguyễn Văn A\",\r
+
+    \  \"role\": \"Staff\",\r
+
+    \  \"is_active\": true\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: "{{json_web_token_0rtf}}"
+order: 4468213386940320

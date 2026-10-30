@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  **Kế hoạch:** Plan!B25 — Lưu phương thức, mã tham chiếu, người và thời điểm xác nhận
+
+  **GET /api/v1/bills/{{billId}}** · HTTP dự kiến **200**
+
+  Vai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (paid); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: '{{baseUrl}}/api/v1/bills/{{billId}}'
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: '{{access_token}}'
+order: 2000
+scripts:
+- type: afterResponse
+  code: |-
+    pm.test('HTTP 200',()=>pm.response.to.have.status(200));
+    if(pm.response.code===200){
+    const paid=pm.response.json();
+    pm.test('Paid, trả đủ, dư nợ 0',()=>{pm.expect(paid.status).to.eql('Paid');pm.expect(Number(paid.paid_amount)).to.eql(Number(paid.total_amount));pm.expect(Number(paid.balance_amount)).to.eql(0);});
+    pm.test('Lưu phương thức, tham chiếu, thời điểm',()=>{pm.expect(paid.payment_method).to.eql('Cash');pm.expect(paid.payment_reference).to.eql('PM-'+pm.variables.get('runTag'));pm.expect(paid.paid_at).to.be.a('string').and.not.empty;});
+    }
+  language: text/javascript

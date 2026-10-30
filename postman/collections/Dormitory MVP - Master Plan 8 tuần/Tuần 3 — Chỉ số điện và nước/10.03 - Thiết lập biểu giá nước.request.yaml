@@ -1,0 +1,44 @@
+$kind: http-request
+description: |-
+  **Kế hoạch:** Plan!B15 — Staff/Admin thiết lập biểu giá và nhập chỉ số theo kỳ cho phòng
+
+  **POST /api/v1/utility-tariffs** · HTTP dự kiến **201**
+
+  Vai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (tariff-slot); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: '{{baseUrl}}/api/v1/utility-tariffs'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    token: '{{access_token}}'
+order: 5000
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "utility_id": "{{waterId}}",
+      "name": "PM water {{runTag}}",
+      "effective_from": "{{tariffDate}}",
+      "effective_to": "{{tariffDate}}",
+      "calculation_type": "Flat",
+      "tiers": [
+        {
+          "tier_order": 1,
+          "from_quantity": 0,
+          "to_quantity": null,
+          "unit_price": 15000
+        }
+      ]
+    }
+scripts:
+- type: afterResponse
+  code: |-
+    pm.test('HTTP 201',()=>pm.response.to.have.status(201));
+    if(pm.response.code===201){
+
+    }
+  language: text/javascript

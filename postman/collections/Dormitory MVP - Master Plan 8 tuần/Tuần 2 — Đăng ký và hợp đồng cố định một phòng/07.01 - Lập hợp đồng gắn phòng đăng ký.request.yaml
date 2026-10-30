@@ -1,0 +1,33 @@
+$kind: http-request
+description: |-
+  **Kế hoạch:** Plan!B11 — Staff/Admin lập hợp đồng gắn phòng đã đăng ký; kiểm tra chỗ trống
+
+  **POST /api/v1/contracts/{{applicationId}}/assign-room** · HTTP dự kiến **201**
+
+  Vai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (approved); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: '{{baseUrl}}/api/v1/contracts/{{applicationId}}/assign-room'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    token: '{{access_token}}'
+order: 5000
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "start_date": "{{today}}",
+      "end_date": "{{contractEnd}}"
+    }
+scripts:
+- type: afterResponse
+  code: |-
+    pm.test('HTTP 201',()=>pm.response.to.have.status(201));
+    if(pm.response.code===201){
+    pm.test('Đúng phòng',()=>{const b=pm.response.json();pm.expect(b.application_id).to.eql(pm.variables.get('applicationId'));pm.expect(b.current_assignment.building_code).to.eql(pm.variables.get('buildingCode').toUpperCase());pm.expect(b.current_assignment.room_code).to.eql('101');});
+    }
+  language: text/javascript

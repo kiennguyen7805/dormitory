@@ -1,0 +1,22 @@
+$kind: http-request
+description: |-
+  **Kế hoạch:** Plan!B34 — Cập nhật OpenAPI/Swagger cho API MVP; bỏ sơ đồ, chuyển phòng và giường công khai
+
+  **GET /openapi.json** · HTTP dự kiến **200**
+
+  Vai trò: Không cần token. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (none); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: "{{baseUrl}}/openapi.json"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200',()=>pm.response.to.have.status(200));
+      if(pm.response.code===200){
+      pm.test('Có MVP, không có giường/chuyển phòng công khai',()=>{const p=pm.response.json().paths;pm.expect(p).to.have.property('/api/v1/bills/generate');pm.expect(p).to.have.property('/api/v1/contracts/{application_id}/assign-room');Object.keys(p).forEach(x=>pm.expect(x).not.to.match(/beds|room-matrix|transfer/));});
+      }
+    language: text/javascript
+order: 1000

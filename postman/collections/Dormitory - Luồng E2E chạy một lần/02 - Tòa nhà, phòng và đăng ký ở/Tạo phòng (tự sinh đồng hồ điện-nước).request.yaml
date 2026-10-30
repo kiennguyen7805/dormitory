@@ -1,0 +1,24 @@
+$kind: http-request
+name: Tạo phòng (tự sinh đồng hồ điện/nước)
+url: "{{baseUrl}}/api/v1/rooms"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{staffToken}}
+body:
+  type: json
+  content: |-
+    {
+      "building_id": "{{buildingId}}",
+      "code": "{{roomCode}}",
+      "floor": 2,
+      "capacity": 2,
+      "monthly_rate": 500000
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 201', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('roomId',pm.response.json().id);
+    language: text/javascript
+order: 2000

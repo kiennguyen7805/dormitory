@@ -1,0 +1,39 @@
+$kind: http-request
+description: |-
+  **Kế hoạch:** Plan!B20 — Phát đúng một hóa đơn cho phòng/kỳ, gồm hai dòng điện và nước
+
+  **POST /api/v1/bills/generate** · HTTP dự kiến **201**
+
+  Vai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (readings); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: '{{baseUrl}}/api/v1/bills/generate'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    token: '{{access_token}}'
+order: 2000
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "room_id": "{{roomId}}",
+      "period_start": "{{today}}",
+      "period_end": "{{today}}",
+      "issued_date": "{{today}}",
+      "due_date": "{{dueDate}}",
+      "idempotency_key": "{{billKey}}"
+    }
+scripts:
+- type: afterResponse
+  code: |-
+    pm.test('HTTP 201',()=>pm.response.to.have.status(201));
+    if(pm.response.code===201){
+    const bill=pm.response.json();
+    pm.test('Hóa đơn phòng, không gắn riêng sinh viên',()=>{pm.expect(bill.room_id).to.eql(pm.variables.get('roomId'));pm.expect(bill.student_id).to.eql(null);pm.expect(bill.contract_id).to.eql(null);});
+    pm.test('Hai dòng điện/nước; tổng khớp các dòng',()=>{pm.expect(bill.items).to.have.length(2);pm.expect(bill.items.map(x=>x.item_type).sort()).to.eql(['Electricity','Water']);pm.expect(Number(bill.total_amount)).to.eql(bill.items.reduce((s,x)=>s+Number(x.amount),0));});
+    }
+  language: text/javascript

@@ -1,0 +1,39 @@
+$kind: http-request
+description: |-
+  **Kế hoạch:** Plan!B32 — Kiểm thử lỗi chỉ số, hóa đơn thiếu dữ liệu và thanh toán lặp
+
+  **POST /api/v1/bills/generate** · HTTP dự kiến **422** · errorCode **READINGS_INCOMPLETE**
+
+  Vai trò: staff. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (electricity-reading); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: '{{baseUrl}}/api/v1/bills/generate'
+method: POST
+auth:
+  type: bearer
+  credentials:
+    token: '{{access_token}}'
+order: 14000
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "room_id": "{{roomId}}",
+      "period_start": "{{today}}",
+      "period_end": "{{today}}",
+      "issued_date": "{{today}}",
+      "due_date": "{{dueDate}}",
+      "idempotency_key": "{{billKey}}"
+    }
+scripts:
+- type: afterResponse
+  code: |-
+    pm.test('HTTP 422',()=>pm.response.to.have.status(422));
+    pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});
+    pm.test('errorCode READINGS_INCOMPLETE',()=>pm.expect(pm.response.json().errorCode).to.eql('READINGS_INCOMPLETE'));
+    if(pm.response.code===422){
+
+    }
+  language: text/javascript

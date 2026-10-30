@@ -1,0 +1,27 @@
+$kind: http-request
+name: 23.06 - [403] Student không được xem hóa đơn phòng khác
+description: |-
+  **Kế hoạch:** Plan!B31 — Kiểm thử quyền Admin, Staff, Student trên các API chính
+
+  **GET /api/v1/bills/{{billId}}** · HTTP dự kiến **403** · errorCode **OWN_DATA_ONLY**
+
+  Vai trò: outsider. Bấm **Send**. Script collection tự đăng nhập và chuẩn bị dữ liệu mẫu riêng (bill); không phải chạy tuần trước. URL, body và Authorization điền bằng biến.
+
+  Mỗi Send có thể tạo dữ liệu demo mới trong database. Xem Scripts → Pre-request của collection và Post-response của request; mở Postman Console để xem các request chuẩn bị. Kỳ demo là một ngày, dùng biểu giá hiện hành.
+url: "{{baseUrl}}/api/v1/bills/{{billId}}"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{access_token}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 403',()=>pm.response.to.have.status(403));
+      pm.test('Problem JSON có status, traceId, instance',()=>{const b=pm.response.json();pm.expect(b.status).to.eql(pm.response.code);pm.expect(b.traceId).to.be.a('string').and.not.empty;pm.expect(b.instance).to.include('/api/v1/');pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');});
+      pm.test('errorCode OWN_DATA_ONLY',()=>pm.expect(pm.response.json().errorCode).to.eql('OWN_DATA_ONLY'));
+      if(pm.response.code===403){
+
+      }
+    language: text/javascript
+order: 10000

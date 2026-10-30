@@ -1,0 +1,9 @@
+$kind: collection
+order: 6000
+description: |-
+  21. Kiểm thử hai sinh viên cùng phòng chỉ nhận một hóa đơn chung (Plan!B29)
+  22. Kiểm thử phòng đủ/chật, đơn chưa duyệt và hợp đồng trùng (Plan!B30)
+  23. Kiểm thử quyền Admin, Staff, Student trên các API chính (Plan!B31)
+  24. Kiểm thử lỗi chỉ số, hóa đơn thiếu dữ liệu và thanh toán lặp (Plan!B32)
+
+  Mở bất kỳ request → Send. Mỗi request độc lập, kể cả ca lỗi. Có thể Run folder hoặc toàn collection, 1 iteration.
