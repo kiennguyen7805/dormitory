@@ -1,3 +1,3 @@
-from .entities import Bed, Building, Room, RoomType
+from .entities import Bed, Building, Room
 
-__all__ = ["Bed", "Building", "Room", "RoomType"]
+__all__ = ["Bed", "Building", "Room"]

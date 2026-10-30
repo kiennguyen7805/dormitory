@@ -24,26 +24,12 @@ class Building:
 
 
 @dataclass(slots=True)
-class RoomType:
-    name: str
-    default_monthly_rate: Decimal
-    is_active: bool = True
-    id: UUID = field(default_factory=uuid4)
-
-    def __post_init__(self) -> None:
-        self.name = self.name.strip()
-        if not self.name:
-            raise ValueError("Room type name is required")
-        if self.default_monthly_rate < 0:
-            raise ValueError("Monthly rate cannot be negative")
-
-
-@dataclass(slots=True)
 class Room:
     building_id: UUID
-    room_type_id: UUID
     code: str
     floor: int
+    capacity: int
+    monthly_rate: Decimal
     is_active: bool = True
     id: UUID = field(default_factory=uuid4)
 
@@ -53,6 +39,8 @@ class Room:
             raise ValueError("Room code is required")
         if self.floor < 1:
             raise ValueError("Room floor must be positive")
+        if self.capacity < 1 or self.monthly_rate < 0:
+            raise ValueError("Room capacity and monthly rate must be valid")
 
 
 @dataclass(slots=True)

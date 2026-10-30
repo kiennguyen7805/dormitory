@@ -6,12 +6,8 @@ from .schemas import (
     BuildingRead,
     BuildingUpdate,
     RoomCreate,
-    RoomMatrixBuilding,
     RoomBulkGenderUpdate,
     RoomRead,
-    RoomTypeCreate,
-    RoomTypeRead,
-    RoomTypeUpdate,
     RoomUpdate,
 )
 from .service import HousingService
@@ -25,11 +21,7 @@ __all__ = [
     "BuildingUpdate",
     "HousingService",
     "RoomCreate",
-    "RoomMatrixBuilding",
     "RoomBulkGenderUpdate",
     "RoomRead",
-    "RoomTypeCreate",
-    "RoomTypeRead",
-    "RoomTypeUpdate",
     "RoomUpdate",
 ]

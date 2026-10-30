@@ -11,11 +11,7 @@ from .schemas import (
     BuildingRead,
     BuildingUpdate,
     RoomCreate,
-    RoomMatrixBuilding,
     RoomRead,
-    RoomTypeCreate,
-    RoomTypeRead,
-    RoomTypeUpdate,
     RoomUpdate,
 )
 
@@ -45,22 +41,6 @@ class HousingService:
     def delete_building(self, item_id: UUID) -> None:
         if not self.repository.delete_building(item_id):
             raise NotFoundError("Building not found")
-
-    def list_room_types(self) -> list[RoomTypeRead]:
-        return self.repository.list_room_types()
-
-    def create_room_type(self, data: RoomTypeCreate) -> RoomTypeRead:
-        return self.repository.create_room_type(data)
-
-    def update_room_type(self, item_id: UUID, data: RoomTypeUpdate) -> RoomTypeRead:
-        item = self.repository.update_room_type(item_id, data)
-        if item is None:
-            raise NotFoundError("Room type not found")
-        return item
-
-    def delete_room_type(self, item_id: UUID) -> None:
-        if not self.repository.delete_room_type(item_id):
-            raise NotFoundError("Room type not found")
 
     def list_rooms(self, building_id: UUID | None = None, staff_id: UUID | None = None) -> list[RoomRead]:
         return self.repository.list_rooms(building_id, staff_id)
@@ -93,9 +73,6 @@ class HousingService:
     def delete_bed(self, item_id: UUID) -> None:
         if not self.repository.delete_bed(item_id):
             raise NotFoundError("Bed not found")
-
-    def room_matrix(self, staff_id: UUID | None = None) -> list[RoomMatrixBuilding]:
-        return self.repository.room_matrix(staff_id)
 
     def bulk_update_gender(self, data, actor_id: UUID, is_admin: bool) -> list[RoomRead]:
         return self.repository.bulk_update_gender(data, actor_id, is_admin)
