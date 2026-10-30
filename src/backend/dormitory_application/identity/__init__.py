@@ -1,9 +1,7 @@
 from .schemas import (
     LoginRequest,
-    PermissionRead,
     RefreshTokenRequest,
     RegisterRequest,
-    ResetPasswordRequest,
     StudentCreate,
     StudentPage,
     StudentProfileRead,
@@ -16,8 +14,8 @@ from .schemas import (
 )
 
 __all__ = [
-    "LoginRequest", "PermissionRead", "RefreshTokenRequest", "RegisterRequest",
-    "ResetPasswordRequest", "StudentProfileRead", "StudentProfileUpdate",
+    "LoginRequest", "RefreshTokenRequest", "RegisterRequest",
+    "StudentProfileRead", "StudentProfileUpdate",
     "StudentCreate", "StudentPage", "StudentRead",
     "TokenResponse", "UserCreate", "UserRead", "UserUpdate",
 ]

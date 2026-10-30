@@ -29,7 +29,6 @@ class UserRead(BaseModel):
     full_name: str
     role: str
     is_active: bool = True
-    permissions: list[str] = Field(default_factory=list)
 
 
 class UserCreate(EmailValidatedModel):
@@ -43,10 +42,6 @@ class UserUpdate(BaseModel):
     full_name: str = Field(min_length=1, max_length=120)
     role: str
     is_active: bool
-
-
-class ResetPasswordRequest(BaseModel):
-    new_password: str = Field(min_length=8, max_length=128)
 
 
 class StudentProfileUpdate(BaseModel):
@@ -66,12 +61,6 @@ class StudentProfileRead(StudentProfileUpdate):
     user_id: UUID
     email: str
     full_name: str
-
-
-class PermissionRead(BaseModel):
-    code: str
-    name: str
-    module: str
 
 
 class RegisterRequest(EmailValidatedModel):
