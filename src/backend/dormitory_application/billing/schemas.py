@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, model_validator
 
 
 class BillGenerateRequest(BaseModel):
-    contract_id: UUID
+    room_id: UUID
     period_start: date
     period_end: date
     issued_date: date
@@ -37,8 +37,9 @@ class BillItemRead(BaseModel):
 class BillRead(BaseModel):
     id: UUID
     bill_no: str
-    contract_id: UUID
-    student_id: UUID
+    contract_id: UUID | None
+    student_id: UUID | None
+    room_id: UUID | None
     period_start: date
     period_end: date
     issued_date: date
@@ -50,4 +51,12 @@ class BillRead(BaseModel):
     paid_amount: Decimal
     balance_amount: Decimal
     idempotency_key: str
+    payment_method: str | None = None
+    payment_reference: str | None = None
+    paid_at: datetime | None = None
     items: list[BillItemRead]
+
+
+class BillPaymentRequest(BaseModel):
+    method: str = Field(min_length=1, max_length=30)
+    reference: str | None = Field(default=None, max_length=100)

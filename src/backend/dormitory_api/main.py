@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
+from sqlalchemy.engine import Connection
 
 from dormitory_api.controllers import (
     auth_router,
@@ -22,13 +22,13 @@ settings = get_settings()
 
 tags_metadata = [
     {"name": "System", "description": "Trạng thái hoạt động của API và PostgreSQL."},
-    {"name": "Auth", "description": "Đăng nhập, đăng xuất và thông tin phiên hiện tại."},
-    {"name": "Identity", "description": "Người dùng, quyền và hồ sơ sinh viên."},
-    {"name": "Students", "description": "CRUD sinh viên và phân trang theo Bài 2."},
-    {"name": "Housing", "description": "Tòa nhà, loại phòng, phòng, giường và sơ đồ phòng."},
-    {"name": "Contracts", "description": "Đơn đăng ký, hợp đồng và lịch sử phân giường."},
-    {"name": "Utilities", "description": "Công tơ, biểu giá, ghi chỉ số và nhập Excel điện nước."},
-    {"name": "Billing", "description": "Sinh và tra cứu hóa đơn tiền phòng, điện, nước."},
+    {"name": "Auth", "description": "Đăng ký, đăng nhập và thông tin phiên hiện tại."},
+    {"name": "Identity", "description": "Người dùng, ba vai trò cố định và hồ sơ sinh viên."},
+    {"name": "Students", "description": "CRUD sinh viên và phân trang."},
+    {"name": "Housing", "description": "Thêm tòa nhà và phòng."},
+    {"name": "Contracts", "description": "Đơn đăng ký và hợp đồng."},
+    {"name": "Utilities", "description": "Công tơ, biểu giá và ghi chỉ số điện nước thủ công."},
+    {"name": "Billing", "description": "Một hóa đơn điện nước cho mỗi phòng và kỳ; xác nhận thanh toán đủ."},
 ]
 
 app = FastAPI(
@@ -77,9 +77,9 @@ def legacy_health() -> dict[str, str]:
 
 
 @app.get("/readyz", tags=["System"], summary="Kiểm tra kết nối PostgreSQL")
-def readiness(db: Session = Depends(get_db)) -> dict[str, str]:
+def readiness(db: Connection = Depends(get_db)) -> dict[str, str]:
     try:
-        db.execute(text("SELECT 1"))
+        db.execute(text("SELECT public.fn_db_ready()"))
     except SQLAlchemyError:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
