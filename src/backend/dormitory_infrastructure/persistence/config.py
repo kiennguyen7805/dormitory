@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     jwt_audience: str = "dormitory-client"
     access_token_expire_minutes: int = 15
     refresh_token_expire_days: int = 7
-    cors_origins: str = "http://localhost:5173"
+    cors_origins: str = ""
 
     @property
     def allowed_origins(self) -> list[str]:
