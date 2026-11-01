@@ -28,6 +28,11 @@ variables:
   studentId: ""
   studentToken: ""
   studentRefreshToken: ""
+  managedUserId: ""
+  buildingId: ""
+  roomId: ""
+  applicationId: ""
+  contractId: ""
 scripts:
   - type: http:beforeRequest
     code: |-
