@@ -13,7 +13,7 @@ depends_on = None
 def upgrade() -> None:
     statements = (
         files("dormitory_infrastructure.persistence")
-        .joinpath("sql", "contract_reads.sql")
+        .joinpath("sql", "contract_reads_0018.sql")
         .read_text(encoding="utf-8")
         .split("-- NEXT STATEMENT")
     )
